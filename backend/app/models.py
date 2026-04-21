@@ -12,6 +12,8 @@ class Admin(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     name: Mapped[str] = mapped_column(String(255))
     password_hash: Mapped[str] = mapped_column(String(255))
+    # director | staff | coach | viewer
+    role: Mapped[str] = mapped_column(String(32), default="director", index=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 

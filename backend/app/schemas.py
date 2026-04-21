@@ -19,6 +19,22 @@ class AdminOut(BaseModel):
     id: int
     email: EmailStr
     name: str
+    role: str = "director"
+    is_active: bool = True
+
+
+class AdminCreate(BaseModel):
+    email: EmailStr
+    name: str
+    password: str
+    role: str = "director"
+
+
+class AdminUpdate(BaseModel):
+    name: str | None = None
+    password: str | None = None
+    role: str | None = None
+    is_active: bool | None = None
 
 
 # --- Student ---
@@ -200,6 +216,78 @@ class DashboardStats(BaseModel):
     total_overdue_balance: int
     payments_this_month: int
     pending_payments_this_month: int
+
+
+# --- Reportes ---
+class SportBreakdown(BaseModel):
+    sport: str
+    active_students: int
+    amount_due: int
+    amount_paid: int
+    balance: int
+    overdue_balance: int
+
+
+class MonthlyReport(BaseModel):
+    year: int
+    month: int
+    generated_at: datetime
+    total_due: int
+    total_collected: int
+    total_pending: int
+    total_overdue: int
+    payments_paid: int
+    payments_pending: int
+    payments_overdue: int
+    by_sport: list[SportBreakdown]
+
+
+class BackupItem(BaseModel):
+    filename: str
+    size_bytes: int
+    created_at: datetime
+
+
+# --- Search ---
+class SearchStudent(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    full_name: str
+    document_id: str | None = None
+    phone: str | None = None
+    sport: str | None = None
+    category: str | None = None
+    is_active: bool
+
+
+# --- Estado de cuenta ---
+class AccountStatementLine(BaseModel):
+    payment_id: int
+    period_year: int
+    period_month: int
+    due_date: date | None
+    amount_due: int
+    amount_paid: int
+    balance: int
+    status: str
+    paid_at: datetime | None = None
+
+
+class AccountStatement(BaseModel):
+    student_id: int
+    student_name: str
+    sport: str | None = None
+    category: str | None = None
+    guardian_name: str | None = None
+    guardian_phone: str | None = None
+    monthly_fee: int
+    generated_at: datetime
+    total_due: int
+    total_paid: int
+    balance: int
+    pending_months: int
+    overdue_months: int
+    lines: list[AccountStatementLine]
 
 
 TokenResponse.model_rebuild()

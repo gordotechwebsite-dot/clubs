@@ -1,9 +1,11 @@
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth";
+import GlobalSearch from "./GlobalSearch";
 
 export default function Layout() {
   const { admin, logout } = useAuth();
   const navigate = useNavigate();
+  const isDirector = admin?.role === "director";
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     `px-4 py-2 text-xs font-semibold uppercase tracking-widest transition-colors border-b-2 ${
@@ -29,24 +31,19 @@ export default function Layout() {
               </div>
             </div>
           </Link>
-          <nav className="ml-auto hidden md:flex items-center">
-            <NavLink to="/" end className={navLinkClass}>
-              Inicio
-            </NavLink>
-            <NavLink to="/estudiantes" className={navLinkClass}>
-              Plantilla
-            </NavLink>
-            <NavLink to="/pagos" className={navLinkClass}>
-              Pagos
-            </NavLink>
-            <NavLink to="/asistencia" className={navLinkClass}>
-              Asistencia
-            </NavLink>
-          </nav>
-          <div className="ml-auto md:ml-0 flex items-center gap-2 md:gap-4 text-sm">
+          <div className="hidden md:block flex-1 max-w-sm">
+            <GlobalSearch />
+          </div>
+          <div className="ml-auto flex items-center gap-2 md:gap-4 text-sm">
             <div className="hidden md:block text-right leading-tight">
               <div className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
-                Administrador
+                {admin?.role === "director"
+                  ? "Director"
+                  : admin?.role === "staff"
+                    ? "Administrativo"
+                    : admin?.role === "coach"
+                      ? "Entrenador"
+                      : "Lector"}
               </div>
               <div className="text-sm font-semibold text-slate-900">
                 {admin?.name}
@@ -63,8 +60,38 @@ export default function Layout() {
             </button>
           </div>
         </div>
+        <nav className="max-w-7xl mx-auto px-4 md:px-6 hidden md:flex items-center overflow-x-auto">
+          <NavLink to="/" end className={navLinkClass}>
+            Inicio
+          </NavLink>
+          <NavLink to="/estudiantes" className={navLinkClass}>
+            Plantilla
+          </NavLink>
+          <NavLink to="/pagos" className={navLinkClass}>
+            Pagos
+          </NavLink>
+          <NavLink to="/asistencia" className={navLinkClass}>
+            Asistencia
+          </NavLink>
+          <NavLink to="/reportes/financiero" className={navLinkClass}>
+            Reportes
+          </NavLink>
+          {isDirector && (
+            <>
+              <NavLink to="/admin/usuarios" className={navLinkClass}>
+                Usuarios
+              </NavLink>
+              <NavLink to="/admin/respaldos" className={navLinkClass}>
+                Respaldos
+              </NavLink>
+            </>
+          )}
+        </nav>
         <div className="h-1 accent-bar" />
       </header>
+      <div className="md:hidden border-b border-slate-200 bg-white px-4 py-3">
+        <GlobalSearch />
+      </div>
       <nav className="md:hidden border-b border-slate-200 bg-white overflow-x-auto">
         <div className="px-4 flex">
           <NavLink to="/" end className={navLinkClass}>
@@ -79,6 +106,19 @@ export default function Layout() {
           <NavLink to="/asistencia" className={navLinkClass}>
             Asistencia
           </NavLink>
+          <NavLink to="/reportes/financiero" className={navLinkClass}>
+            Reportes
+          </NavLink>
+          {isDirector && (
+            <>
+              <NavLink to="/admin/usuarios" className={navLinkClass}>
+                Usuarios
+              </NavLink>
+              <NavLink to="/admin/respaldos" className={navLinkClass}>
+                Respaldos
+              </NavLink>
+            </>
+          )}
         </div>
       </nav>
       <main className="flex-1">

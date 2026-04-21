@@ -57,3 +57,12 @@ def get_current_admin(
     if admin is None or not admin.is_active:
         raise credentials_exception
     return admin
+
+
+def require_director(current: Admin = Depends(get_current_admin)) -> Admin:
+    if current.role != "director":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Solo un director puede realizar esta acción",
+        )
+    return current

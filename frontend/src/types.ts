@@ -1,7 +1,86 @@
+export type AdminRole = "director" | "staff" | "coach" | "viewer";
+
 export interface Admin {
   id: number;
   email: string;
   name: string;
+  role: AdminRole;
+  is_active: boolean;
+}
+
+export interface AdminInput {
+  email: string;
+  name: string;
+  password: string;
+  role: AdminRole;
+}
+
+export interface SearchStudent {
+  id: number;
+  full_name: string;
+  document_id: string | null;
+  phone: string | null;
+  sport: string | null;
+  category: string | null;
+  is_active: boolean;
+}
+
+export interface AccountStatementLine {
+  payment_id: number;
+  period_year: number;
+  period_month: number;
+  due_date: string | null;
+  amount_due: number;
+  amount_paid: number;
+  balance: number;
+  status: "pending" | "paid" | "partial" | "overdue";
+  paid_at: string | null;
+}
+
+export interface AccountStatement {
+  student_id: number;
+  student_name: string;
+  sport: string | null;
+  category: string | null;
+  guardian_name: string | null;
+  guardian_phone: string | null;
+  monthly_fee: number;
+  generated_at: string;
+  total_due: number;
+  total_paid: number;
+  balance: number;
+  pending_months: number;
+  overdue_months: number;
+  lines: AccountStatementLine[];
+}
+
+export interface SportBreakdown {
+  sport: string;
+  active_students: number;
+  amount_due: number;
+  amount_paid: number;
+  balance: number;
+  overdue_balance: number;
+}
+
+export interface MonthlyReport {
+  year: number;
+  month: number;
+  generated_at: string;
+  total_due: number;
+  total_collected: number;
+  total_pending: number;
+  total_overdue: number;
+  payments_paid: number;
+  payments_pending: number;
+  payments_overdue: number;
+  by_sport: SportBreakdown[];
+}
+
+export interface BackupItem {
+  filename: string;
+  size_bytes: number;
+  created_at: string;
 }
 
 export interface Student {
