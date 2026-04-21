@@ -60,6 +60,7 @@ export interface Payment {
   student_id: number;
   period_year: number;
   period_month: number;
+  due_date: string | null;
   amount_due: number;
   amount_paid: number;
   status: "pending" | "paid" | "partial" | "overdue";

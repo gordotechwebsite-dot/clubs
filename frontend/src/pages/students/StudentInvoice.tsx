@@ -219,6 +219,7 @@ export default function StudentInvoice() {
             <tr>
               <th className="text-left px-3 py-2">Periodo</th>
               <th className="text-left px-3 py-2">Concepto</th>
+              <th className="text-left px-3 py-2">Vence</th>
               <th className="text-right px-3 py-2">Valor</th>
               <th className="text-right px-3 py-2">Pagado</th>
               <th className="text-right px-3 py-2">Saldo</th>
@@ -228,7 +229,7 @@ export default function StudentInvoice() {
           <tbody className="divide-y divide-slate-200">
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={6} className="text-center py-6 text-slate-400">
+                <td colSpan={7} className="text-center py-6 text-slate-400">
                   Sin pagos en el alcance seleccionado.
                 </td>
               </tr>
@@ -239,6 +240,7 @@ export default function StudentInvoice() {
                   {MONTH_NAMES_ES[p.period_month - 1]} {p.period_year}
                 </td>
                 <td className="px-3 py-2">Mensualidad del club</td>
+                <td className="px-3 py-2 text-slate-600">{formatDateEs(p.due_date)}</td>
                 <td className="px-3 py-2 text-right font-mono">{formatCOP(p.amount_due)}</td>
                 <td className="px-3 py-2 text-right font-mono">{formatCOP(p.amount_paid)}</td>
                 <td className="px-3 py-2 text-right font-mono">

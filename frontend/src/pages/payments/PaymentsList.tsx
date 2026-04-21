@@ -208,6 +208,7 @@ export default function PaymentsList() {
               <th className="text-right px-4 py-3">Pagado</th>
               <th className="text-right px-4 py-3">Saldo</th>
               <th className="text-center px-4 py-3">Estado</th>
+              <th className="text-left px-4 py-3">Fecha límite</th>
               <th className="text-left px-4 py-3">Pagado el</th>
               <th className="text-right px-4 py-3">Acciones</th>
             </tr>
@@ -215,14 +216,14 @@ export default function PaymentsList() {
           <tbody className="divide-y divide-slate-200">
             {loading && (
               <tr>
-                <td colSpan={8} className="text-center py-10 text-slate-400 uppercase tracking-widest text-xs">
+                <td colSpan={9} className="text-center py-10 text-slate-400 uppercase tracking-widest text-xs">
                   Cargando
                 </td>
               </tr>
             )}
             {!loading && payments.length === 0 && (
               <tr>
-                <td colSpan={8} className="text-center py-10 text-slate-400">
+                <td colSpan={9} className="text-center py-10 text-slate-400">
                   Sin pagos en este periodo. Genera los cobros del mes para continuar.
                 </td>
               </tr>
@@ -264,6 +265,9 @@ export default function PaymentsList() {
                   </td>
                   <td className="px-4 py-3 text-center">
                     <PaymentBadge status={p.status} />
+                  </td>
+                  <td className="px-4 py-3 text-slate-600">
+                    {formatDateEs(p.due_date)}
                   </td>
                   <td className="px-4 py-3 text-slate-500">
                     {formatDateEs(p.paid_at)}
