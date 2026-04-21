@@ -1,8 +1,8 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@400;500;600;700&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap");
 
 html,
 body,
@@ -11,12 +11,13 @@ body,
 }
 
 body {
-  @apply bg-slate-100 text-slate-900 font-sans antialiased;
+  @apply bg-white text-slate-900 font-sans antialiased;
+  font-feature-settings: "cv11", "ss01", "ss03";
 }
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center rounded-sm px-5 py-2.5 text-xs font-semibold uppercase tracking-widest transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
   }
   .btn-primary {
     @apply btn bg-titanes-navy text-white hover:bg-titanes-dark;
@@ -25,33 +26,78 @@ body {
     @apply btn bg-titanes-red text-white hover:bg-titanes-crimson;
   }
   .btn-ghost {
-    @apply btn bg-white text-slate-700 border border-slate-300 hover:bg-slate-50;
+    @apply btn bg-white text-slate-800 border border-slate-300 hover:border-titanes-navy hover:text-titanes-navy;
   }
   .btn-success {
-    @apply btn bg-emerald-600 text-white hover:bg-emerald-700;
+    @apply btn bg-emerald-700 text-white hover:bg-emerald-800;
+  }
+  .btn-link {
+    @apply inline-flex items-center text-xs font-semibold uppercase tracking-widest text-titanes-navy hover:text-titanes-dark;
   }
   .card {
-    @apply bg-white rounded-xl shadow-sm border border-slate-200;
+    @apply bg-white rounded-sm border border-slate-200;
   }
   .input {
-    @apply w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-titanes-navy focus:border-transparent;
+    @apply w-full rounded-sm border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-titanes-navy focus:ring-1 focus:ring-titanes-navy;
   }
   .label {
-    @apply block text-xs font-medium text-slate-600 mb-1 uppercase tracking-wide;
+    @apply block text-[11px] font-semibold text-slate-500 mb-1.5 uppercase tracking-widest;
   }
-  .badge {
-    @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium;
+  .pill {
+    @apply inline-flex items-center rounded-sm px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest;
   }
-  .badge-paid {
-    @apply badge bg-emerald-100 text-emerald-800;
+  .pill-paid {
+    @apply pill bg-emerald-50 text-emerald-800 border border-emerald-200;
   }
-  .badge-pending {
-    @apply badge bg-amber-100 text-amber-800;
+  .pill-pending {
+    @apply pill bg-amber-50 text-amber-800 border border-amber-200;
   }
-  .badge-overdue {
-    @apply badge bg-rose-100 text-rose-800;
+  .pill-overdue {
+    @apply pill bg-rose-50 text-rose-800 border border-rose-200;
   }
-  .badge-partial {
-    @apply badge bg-sky-100 text-sky-800;
+  .pill-partial {
+    @apply pill bg-sky-50 text-sky-800 border border-sky-200;
+  }
+  .pill-active {
+    @apply pill bg-slate-900 text-white;
+  }
+  .pill-inactive {
+    @apply pill bg-slate-100 text-slate-600 border border-slate-200;
+  }
+  .display {
+    @apply font-display uppercase tracking-wide;
+  }
+  .h-page {
+    @apply display text-3xl md:text-4xl text-slate-900 leading-none;
+  }
+  .h-section {
+    @apply display text-xl text-slate-900;
+  }
+  .stat-num {
+    @apply display text-3xl text-slate-900;
+  }
+  .stat-label {
+    @apply text-[10px] font-semibold text-slate-500 uppercase tracking-widest;
+  }
+  .divider {
+    @apply h-px bg-slate-200 w-full;
+  }
+  .accent-bar {
+    background: linear-gradient(
+      90deg,
+      #0b1b4a 0%,
+      #132a7a 45%,
+      #b71c1c 55%,
+      #d32f2f 100%
+    );
+  }
+}
+
+@media print {
+  body {
+    background: white;
+  }
+  .no-print {
+    display: none !important;
   }
 }

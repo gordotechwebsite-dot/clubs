@@ -28,48 +28,59 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-titanes-dark via-titanes-navy to-titanes-crimson flex items-center justify-center p-4">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
       <div className="w-full max-w-md">
-        <div className="flex flex-col items-center mb-6">
-          <img src="/logo.png" alt="Titanes" className="h-28 w-28 object-contain drop-shadow-xl" />
-          <h1 className="mt-3 font-display text-3xl text-white tracking-wide">CLUB TITANES</h1>
-          <p className="text-white/80 text-sm">Soatá · Panel administrativo</p>
-        </div>
-        <form
-          onSubmit={onSubmit}
-          className="bg-white rounded-2xl shadow-2xl p-6 space-y-4"
-        >
-          <div>
-            <label className="label">Email</label>
-            <input
-              type="email"
-              className="input"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-            />
-          </div>
-          <div>
-            <label className="label">Contraseña</label>
-            <input
-              type="password"
-              className="input"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="current-password"
-            />
-          </div>
-          {error && (
-            <div className="text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-md px-3 py-2">
-              {error}
+        <div className="bg-white border border-slate-200 shadow-sm">
+          <div className="h-1 accent-bar" />
+          <div className="px-8 pt-8 pb-6 flex flex-col items-center">
+            <img src="/logo.png" alt="Club Titanes" className="h-24 w-24 object-contain" />
+            <div className="display text-2xl text-slate-900 mt-4">CLUB TITANES</div>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.4em] text-slate-500 mt-1">
+              Soatá Boyacá
             </div>
-          )}
-          <button type="submit" className="btn-primary w-full" disabled={loading}>
-            {loading ? "Ingresando..." : "Ingresar"}
-          </button>
-        </form>
+            <div className="mt-8 w-full">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.3em] text-titanes-red mb-2">
+                Acceso privado
+              </div>
+              <h1 className="h-section mb-6">Panel administrativo</h1>
+              <form onSubmit={onSubmit} className="space-y-4">
+                <div>
+                  <label className="label">Correo electrónico</label>
+                  <input
+                    type="email"
+                    className="input"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoComplete="email"
+                  />
+                </div>
+                <div>
+                  <label className="label">Contraseña</label>
+                  <input
+                    type="password"
+                    className="input"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    autoComplete="current-password"
+                  />
+                </div>
+                {error && (
+                  <div className="text-sm text-rose-700 bg-rose-50 border border-rose-200 px-3 py-2">
+                    {error}
+                  </div>
+                )}
+                <button type="submit" className="btn-primary w-full" disabled={loading}>
+                  {loading ? "Ingresando" : "Ingresar al sistema"}
+                </button>
+              </form>
+            </div>
+          </div>
+          <div className="px-8 py-4 border-t border-slate-200 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-400">
+            Registro oficial del club
+          </div>
+        </div>
       </div>
     </div>
   );

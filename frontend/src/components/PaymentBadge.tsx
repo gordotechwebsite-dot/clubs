@@ -8,10 +8,10 @@ const LABELS: Record<Payment["status"], string> = {
 };
 
 const CLASS: Record<Payment["status"], string> = {
-  paid: "badge-paid",
-  pending: "badge-pending",
-  overdue: "badge-overdue",
-  partial: "badge-partial",
+  paid: "pill-paid",
+  pending: "pill-pending",
+  overdue: "pill-overdue",
+  partial: "pill-partial",
 };
 
 export default function PaymentBadge({ status }: { status: Payment["status"] }) {

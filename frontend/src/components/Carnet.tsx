@@ -4,95 +4,108 @@ import { formatDateEs } from "../utils";
 
 interface Props {
   student: Student;
+  validUntil?: Date;
 }
 
-function yearFromIso(iso: string | null): string {
-  if (!iso) return "—";
-  try {
-    return new Date(iso).getFullYear().toString();
-  } catch {
-    return "—";
-  }
-}
-
-export default function Carnet({ student }: Props) {
-  const validUntil = new Date();
-  validUntil.setFullYear(validUntil.getFullYear() + 1);
+export default function Carnet({ student, validUntil }: Props) {
+  const valid = validUntil || (() => {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() + 1);
+    return d;
+  })();
 
   const qrValue = JSON.stringify({
     club: "Club Titanes Soatá",
     id: student.id,
     name: student.full_name,
     doc: student.document_id,
-    valid_until: validUntil.toISOString().slice(0, 10),
+    sport: student.sport,
+    valid_until: valid.toISOString().slice(0, 10),
   });
 
   return (
-    <div className="flex flex-col items-center gap-3">
+    <div
+      id={`carnet-${student.id}`}
+      className="relative w-[340px] h-[540px] overflow-hidden text-white shadow-2xl"
+      style={{
+        background:
+          "linear-gradient(160deg, #0b1b4a 0%, #132a7a 50%, #7a0f14 80%, #b71c1c 100%)",
+      }}
+    >
       <div
-        id={`carnet-${student.id}`}
-        className="relative w-[340px] h-[540px] rounded-2xl overflow-hidden shadow-2xl text-white"
+        className="absolute inset-0 opacity-30"
         style={{
-          background:
-            "linear-gradient(160deg, #0b1b4a 0%, #132a7a 45%, #7a0f14 75%, #d32f2f 100%)",
+          backgroundImage:
+            "radial-gradient(circle at top right, rgba(255,255,255,0.15), transparent 55%)",
         }}
-      >
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_top_right,_#ffffff55,_transparent_60%)]" />
-        <div className="relative p-5 flex flex-col items-center h-full">
-          <div className="flex items-center justify-between w-full">
-            <img src="/logo.png" alt="Titanes" className="h-14 w-14 object-contain drop-shadow" />
-            <div className="text-right leading-tight">
-              <div className="font-display tracking-widest text-sm opacity-80">CLUB</div>
-              <div className="font-display text-2xl tracking-wide">TITANES</div>
-              <div className="text-[10px] uppercase opacity-80">Soatá</div>
-            </div>
+      />
+      <div className="absolute top-4 left-4 right-4 flex items-start justify-between">
+        <img src="/logo.png" alt="Club Titanes" className="h-14 w-14 object-contain" />
+        <div className="text-right leading-tight">
+          <div className="text-[9px] font-semibold uppercase tracking-[0.4em] opacity-80">
+            Club
           </div>
+          <div className="display text-2xl">TITANES</div>
+          <div className="text-[9px] font-semibold uppercase tracking-[0.4em] opacity-80">
+            Soatá Boyacá
+          </div>
+        </div>
+      </div>
 
-          <div className="mt-4 h-36 w-36 rounded-full overflow-hidden ring-4 ring-white/70 bg-white/10 flex items-center justify-center">
-            {student.photo_url ? (
-              <img src={student.photo_url} className="h-full w-full object-cover" alt="" />
-            ) : (
-              <span className="text-white/60 text-xs">Sin foto</span>
-            )}
-          </div>
+      <div className="absolute top-24 left-0 right-0 flex justify-center">
+        <div className="h-32 w-32 rounded-full overflow-hidden ring-4 ring-white/80 bg-white/10 flex items-center justify-center">
+          {student.photo_url ? (
+            <img
+              src={student.photo_url}
+              alt={student.full_name}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <span className="display text-3xl">
+              {student.full_name
+                .split(/\s+/)
+                .map((p) => p[0])
+                .filter(Boolean)
+                .slice(0, 2)
+                .join("")
+                .toUpperCase()}
+            </span>
+          )}
+        </div>
+      </div>
 
-          <div className="mt-4 text-center">
-            <div className="font-display text-xl leading-tight uppercase">{student.full_name}</div>
-            <div className="text-xs opacity-80 mt-1">
-              {[student.sport, student.category].filter(Boolean).join(" · ") || "Deportista"}
-            </div>
-          </div>
+      <div className="absolute left-0 right-0 top-64 px-6 text-center">
+        <div className="display text-xl leading-tight">{student.full_name}</div>
+        <div className="text-[10px] font-semibold uppercase tracking-[0.3em] opacity-80 mt-1">
+          {[student.sport, student.category].filter(Boolean).join(" / ") || "Deportista"}
+        </div>
+      </div>
 
-          <div className="mt-4 w-full grid grid-cols-2 gap-2 text-[11px]">
-            <div>
-              <div className="opacity-70 uppercase tracking-wide text-[9px]">ID</div>
-              <div className="font-semibold">{student.id.toString().padStart(4, "0")}</div>
-            </div>
-            <div className="text-right">
-              <div className="opacity-70 uppercase tracking-wide text-[9px]">Documento</div>
-              <div className="font-semibold">{student.document_id || "—"}</div>
-            </div>
-            <div>
-              <div className="opacity-70 uppercase tracking-wide text-[9px]">Nacido</div>
-              <div className="font-semibold">{yearFromIso(student.birth_date)}</div>
-            </div>
-            <div className="text-right">
-              <div className="opacity-70 uppercase tracking-wide text-[9px]">Ingreso</div>
-              <div className="font-semibold">{formatDateEs(student.join_date)}</div>
-            </div>
-          </div>
+      <div className="absolute bottom-28 left-6 right-6 grid grid-cols-2 gap-2 text-[10px]">
+        <div>
+          <div className="opacity-70 uppercase tracking-[0.2em] text-[9px]">ID</div>
+          <div className="font-semibold">{student.id.toString().padStart(4, "0")}</div>
+        </div>
+        <div className="text-right">
+          <div className="opacity-70 uppercase tracking-[0.2em] text-[9px]">Documento</div>
+          <div className="font-semibold">{student.document_id || "Sin registrar"}</div>
+        </div>
+        <div>
+          <div className="opacity-70 uppercase tracking-[0.2em] text-[9px]">Ingreso</div>
+          <div className="font-semibold">{formatDateEs(student.join_date)}</div>
+        </div>
+        <div className="text-right">
+          <div className="opacity-70 uppercase tracking-[0.2em] text-[9px]">Vigencia</div>
+          <div className="font-semibold">{formatDateEs(valid.toISOString())}</div>
+        </div>
+      </div>
 
-          <div className="mt-auto w-full flex items-end justify-between">
-            <div className="text-[10px] opacity-80 uppercase tracking-wide">
-              Válido hasta
-              <div className="font-semibold text-white text-xs">
-                {formatDateEs(validUntil.toISOString())}
-              </div>
-            </div>
-            <div className="bg-white p-2 rounded-md">
-              <QRCodeSVG value={qrValue} size={64} />
-            </div>
-          </div>
+      <div className="absolute bottom-4 left-6 right-6 flex items-end justify-between">
+        <div className="text-[9px] font-semibold uppercase tracking-[0.3em] opacity-80">
+          Registro oficial del club
+        </div>
+        <div className="bg-white p-1.5">
+          <QRCodeSVG value={qrValue} size={60} />
         </div>
       </div>
     </div>

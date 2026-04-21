@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { paymentsApi, studentsApi } from "../api";
-import type { Payment, Student } from "../types";
-import { currentPeriod, formatCOP, formatDateEs, MONTH_NAMES_ES } from "../utils";
-import PaymentBadge from "../components/PaymentBadge";
+import { paymentsApi, studentsApi } from "../../api";
+import type { Payment, Student } from "../../types";
+import { currentPeriod, formatCOP, formatDateEs, MONTH_NAMES_ES } from "../../utils";
+import PageHeader from "../../components/PageHeader";
+import PaymentBadge from "../../components/PaymentBadge";
 
-export default function Payments() {
+export default function PaymentsList() {
   const { year: nowYear, month: nowMonth } = currentPeriod();
   const [year, setYear] = useState<number>(nowYear);
   const [month, setMonth] = useState<number>(nowMonth);
@@ -35,6 +36,7 @@ export default function Payments() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [year, month, statusFilter]);
@@ -46,8 +48,8 @@ export default function Payments() {
       const { data } = await paymentsApi.generateMonth(year, month);
       setMessage(
         data.length === 0
-          ? `No se crearon cobros nuevos (ya existían para ${MONTH_NAMES_ES[month - 1]} ${year}).`
-          : `Se generaron ${data.length} cobro(s) para ${MONTH_NAMES_ES[month - 1]} ${year}.`
+          ? `No se crearon cobros nuevos. Ya existían registros para ${MONTH_NAMES_ES[month - 1]} de ${year}.`
+          : `Se generaron ${data.length} cobros para ${MONTH_NAMES_ES[month - 1]} de ${year}.`
       );
       load();
     } finally {
@@ -72,13 +74,21 @@ export default function Payments() {
   }, [payments]);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-3xl text-titanes-dark">Pagos</h1>
-        <p className="text-slate-500 text-sm">Control mensual de cuotas del club</p>
-      </div>
+    <div>
+      <PageHeader
+        eyebrow="Administración"
+        title="Control de pagos"
+        subtitle="Cobros mensuales del club. Genera, consulta y actualiza los pagos de todos los deportistas en un solo lugar."
+        actions={
+          <button className="btn-primary" onClick={onGenerate} disabled={generating}>
+            {generating
+              ? "Generando"
+              : `Generar cobros ${MONTH_NAMES_ES[month - 1]}`}
+          </button>
+        }
+      />
 
-      <div className="card p-4 flex items-end gap-3 flex-wrap">
+      <div className="card p-4 flex items-end gap-4 flex-wrap mb-6">
         <div>
           <label className="label">Año</label>
           <input
@@ -91,7 +101,7 @@ export default function Payments() {
         <div>
           <label className="label">Mes</label>
           <select
-            className="input w-40"
+            className="input w-48"
             value={month}
             onChange={(e) => setMonth(Number(e.target.value))}
           >
@@ -105,7 +115,7 @@ export default function Payments() {
         <div>
           <label className="label">Estado</label>
           <select
-            className="input w-40"
+            className="input w-48"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
@@ -116,60 +126,59 @@ export default function Payments() {
             <option value="paid">Pagados</option>
           </select>
         </div>
-        <div className="ml-auto">
-          <button className="btn-primary" onClick={onGenerate} disabled={generating}>
-            {generating ? "Generando..." : `Generar cobros ${MONTH_NAMES_ES[month - 1]}`}
-          </button>
-        </div>
       </div>
 
       {message && (
-        <div className="rounded-md bg-titanes-ice text-titanes-navy px-4 py-2 text-sm border border-titanes-navy/20">
+        <div className="mb-6 border-l-4 border-titanes-navy bg-slate-50 px-4 py-3 text-sm text-slate-700">
           {message}
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-3">
-        <div className="card p-3">
-          <div className="text-xs uppercase text-slate-500">Facturado</div>
-          <div className="text-xl font-display">{formatCOP(totals.due)}</div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="card p-4 border-l-4 border-slate-200">
+          <div className="stat-label">Facturado</div>
+          <div className="stat-num mt-1">{formatCOP(totals.due)}</div>
         </div>
-        <div className="card p-3">
-          <div className="text-xs uppercase text-slate-500">Cobrado</div>
-          <div className="text-xl font-display text-emerald-700">{formatCOP(totals.paid)}</div>
+        <div className="card p-4 border-l-4 border-emerald-600">
+          <div className="stat-label">Cobrado</div>
+          <div className="stat-num mt-1 text-emerald-700">
+            {formatCOP(totals.paid)}
+          </div>
         </div>
-        <div className="card p-3">
-          <div className="text-xs uppercase text-slate-500">Pendiente</div>
-          <div className="text-xl font-display text-rose-700">{formatCOP(totals.balance)}</div>
+        <div className="card p-4 border-l-4 border-titanes-red">
+          <div className="stat-label">Pendiente</div>
+          <div className="stat-num mt-1 text-titanes-crimson">
+            {formatCOP(Math.max(0, totals.balance))}
+          </div>
         </div>
       </div>
 
       <div className="card overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-xs uppercase text-slate-600">
+          <thead className="bg-slate-900 text-white text-[10px] uppercase tracking-widest">
             <tr>
-              <th className="text-left px-4 py-3">Estudiante</th>
-              <th className="text-left px-4 py-3">Categoría</th>
+              <th className="text-left px-4 py-3">Deportista</th>
+              <th className="text-left px-4 py-3">Disciplina</th>
               <th className="text-right px-4 py-3">Cobrado</th>
               <th className="text-right px-4 py-3">Pagado</th>
               <th className="text-right px-4 py-3">Saldo</th>
               <th className="text-center px-4 py-3">Estado</th>
               <th className="text-left px-4 py-3">Pagado el</th>
-              <th />
+              <th className="text-right px-4 py-3">Acciones</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-200">
             {loading && (
               <tr>
-                <td colSpan={8} className="text-center py-8 text-slate-400">
-                  Cargando...
+                <td colSpan={8} className="text-center py-10 text-slate-400 uppercase tracking-widest text-xs">
+                  Cargando
                 </td>
               </tr>
             )}
             {!loading && payments.length === 0 && (
               <tr>
-                <td colSpan={8} className="text-center py-8 text-slate-400">
-                  Sin pagos en este periodo. Genera los cobros del mes.
+                <td colSpan={8} className="text-center py-10 text-slate-400">
+                  Sin pagos en este periodo. Genera los cobros del mes para continuar.
                 </td>
               </tr>
             )}
@@ -179,32 +188,54 @@ export default function Payments() {
                 <tr key={p.id} className="hover:bg-slate-50">
                   <td className="px-4 py-3">
                     {s ? (
-                      <Link to={`/estudiantes/${s.id}`} className="font-medium text-titanes-navy hover:underline">
+                      <Link
+                        to={`/estudiantes/${s.id}`}
+                        className="font-semibold text-slate-900 hover:text-titanes-navy"
+                      >
                         {s.full_name}
                       </Link>
                     ) : (
-                      `#${p.student_id}`
+                      `Estudiante ${p.student_id}`
                     )}
                   </td>
-                  <td className="px-4 py-3 text-slate-600">
-                    {s ? [s.sport, s.category].filter(Boolean).join(" · ") : "—"}
+                  <td className="px-4 py-3 text-slate-700">
+                    {s ? (
+                      <>
+                        <div>{s.sport || ""}</div>
+                        <div className="text-xs text-slate-500">{s.category || ""}</div>
+                      </>
+                    ) : (
+                      "-"
+                    )}
                   </td>
-                  <td className="px-4 py-3 text-right">{formatCOP(p.amount_due)}</td>
-                  <td className="px-4 py-3 text-right">{formatCOP(p.amount_paid)}</td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-4 py-3 text-right font-mono">
+                    {formatCOP(p.amount_due)}
+                  </td>
+                  <td className="px-4 py-3 text-right font-mono">
+                    {formatCOP(p.amount_paid)}
+                  </td>
+                  <td className="px-4 py-3 text-right font-mono">
                     {formatCOP(Math.max(0, p.amount_due - p.amount_paid))}
                   </td>
                   <td className="px-4 py-3 text-center">
                     <PaymentBadge status={p.status} />
                   </td>
-                  <td className="px-4 py-3 text-slate-500">{formatDateEs(p.paid_at)}</td>
+                  <td className="px-4 py-3 text-slate-500">
+                    {formatDateEs(p.paid_at)}
+                  </td>
                   <td className="px-4 py-3 text-right whitespace-nowrap">
                     {p.status !== "paid" ? (
-                      <button className="text-emerald-700 font-semibold hover:underline" onClick={() => onMarkPaid(p)}>
+                      <button
+                        className="btn-link text-emerald-700 hover:text-emerald-900"
+                        onClick={() => onMarkPaid(p)}
+                      >
                         Marcar pagado
                       </button>
                     ) : (
-                      <button className="text-amber-700 font-semibold hover:underline" onClick={() => onMarkUnpaid(p)}>
+                      <button
+                        className="btn-link text-amber-700 hover:text-amber-900"
+                        onClick={() => onMarkUnpaid(p)}
+                      >
                         Revertir
                       </button>
                     )}

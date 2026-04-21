@@ -32,7 +32,7 @@ export async function buildInvoicePdf(
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(80);
-  doc.text("Soatá · Boyacá", W - margin, y + 40, { align: "right" });
+  doc.text("Soatá, Boyacá", W - margin, y + 40, { align: "right" });
   doc.text(`Factura: ${opts.invoiceNumber || `INV-${Date.now()}`}`, W - margin, y + 54, {
     align: "right",
   });
@@ -56,7 +56,7 @@ export async function buildInvoicePdf(
   doc.text(student.full_name, margin + 12, y + 38);
   if (student.document_id) doc.text(`Documento: ${student.document_id}`, margin + 12, y + 54);
   if (student.category || student.sport) {
-    const cat = [student.sport, student.category].filter(Boolean).join(" · ");
+    const cat = [student.sport, student.category].filter(Boolean).join(" / ");
     doc.text(`Categoría: ${cat}`, margin + 12, y + 70);
   }
   if (student.phone) doc.text(`Tel: ${student.phone}`, margin + 260, y + 38);

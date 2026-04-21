@@ -1,15 +1,19 @@
 import { useState, type FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import { studentsApi } from "../api";
 import type { Student, StudentInput } from "../types";
 import { fileToDataUrl } from "../utils";
+import StudentPhoto from "./StudentPhoto";
 
 interface Props {
   student?: Student;
-  onClose: () => void;
-  onSaved: (s: Student) => void;
+  submitLabel: string;
+  backTo: string;
+  onSaved?: (s: Student) => void;
 }
 
-export default function StudentForm({ student, onClose, onSaved }: Props) {
+export default function StudentForm({ student, submitLabel, backTo, onSaved }: Props) {
+  const navigate = useNavigate();
   const [form, setForm] = useState<StudentInput>(() => ({
     full_name: student?.full_name || "",
     document_id: student?.document_id || "",
@@ -48,11 +52,9 @@ export default function StudentForm({ student, onClose, onSaved }: Props) {
     setError(null);
     setSaving(true);
     try {
-      // Clean empty strings for optional fields so backend stores null
       const payload: StudentInput = { ...form };
       (Object.keys(payload) as Array<keyof StudentInput>).forEach((k) => {
         if (payload[k] === "") {
-          // Leave monthly_fee and is_active alone; they are numeric/boolean
           if (k !== "monthly_fee" && k !== "is_active") {
             (payload as Record<string, unknown>)[k] = null;
           }
@@ -61,11 +63,15 @@ export default function StudentForm({ student, onClose, onSaved }: Props) {
       const res = student
         ? await studentsApi.update(student.id, payload)
         : await studentsApi.create(payload);
-      onSaved(res.data);
+      if (onSaved) {
+        onSaved(res.data);
+      } else {
+        navigate(`/estudiantes/${res.data.id}`);
+      }
     } catch (err) {
       const msg =
         (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
-        "Error al guardar";
+        "No se pudo guardar el registro";
       setError(msg);
     } finally {
       setSaving(false);
@@ -73,160 +79,165 @@ export default function StudentForm({ student, onClose, onSaved }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 bg-slate-900/50 z-40 flex items-start justify-center overflow-y-auto p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl my-8">
-        <div className="px-6 py-4 border-b flex items-center justify-between">
-          <h2 className="font-display text-xl text-titanes-dark">
-            {student ? "Editar estudiante" : "Nuevo estudiante"}
-          </h2>
-          <button className="text-slate-500 hover:text-slate-800" onClick={onClose}>
-            ✕
-          </button>
+    <form onSubmit={onSubmit} className="space-y-8">
+      {error && (
+        <div className="border-l-4 border-rose-600 bg-rose-50 text-rose-800 text-sm px-4 py-3">
+          {error}
         </div>
-        <form onSubmit={onSubmit} className="p-6 space-y-4">
-          {error && (
-            <div className="text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-md px-3 py-2">
-              {error}
-            </div>
-          )}
+      )}
 
-          <div className="flex items-start gap-4">
-            <div className="flex flex-col items-center gap-2">
-              <div className="h-28 w-28 rounded-full bg-slate-100 overflow-hidden border-2 border-titanes-navy/30 flex items-center justify-center">
-                {form.photo_url ? (
-                  <img src={form.photo_url} alt="" className="h-full w-full object-cover" />
-                ) : (
-                  <span className="text-slate-400 text-xs">Sin foto</span>
-                )}
-              </div>
-              <label className="text-xs text-titanes-navy cursor-pointer hover:underline">
-                Cambiar foto
-                <input type="file" accept="image/*" className="hidden" onChange={onPhoto} />
-              </label>
-            </div>
-            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="md:col-span-2">
-                <label className="label">Nombre completo *</label>
-                <input
-                  className="input"
-                  required
-                  value={form.full_name}
-                  onChange={(e) => set("full_name", e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="label">Documento</label>
-                <input
-                  className="input"
-                  value={form.document_id || ""}
-                  onChange={(e) => set("document_id", e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="label">Fecha de nacimiento</label>
-                <input
-                  type="date"
-                  className="input"
-                  value={form.birth_date || ""}
-                  onChange={(e) => set("birth_date", e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="label">Teléfono</label>
-                <input
-                  className="input"
-                  value={form.phone || ""}
-                  onChange={(e) => set("phone", e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="label">Dirección</label>
-                <input
-                  className="input"
-                  value={form.address || ""}
-                  onChange={(e) => set("address", e.target.value)}
-                />
-              </div>
-            </div>
+      <section className="card p-6">
+        <div className="text-[11px] font-semibold uppercase tracking-[0.3em] text-titanes-red mb-3">
+          Identificación
+        </div>
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="flex flex-col items-center gap-3">
+            <StudentPhoto url={form.photo_url} name={form.full_name || "Nuevo"} size="lg" />
+            <label className="btn-ghost cursor-pointer">
+              <span>Subir foto</span>
+              <input type="file" accept="image/*" className="hidden" onChange={onPhoto} />
+            </label>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="label">Acudiente / representante</label>
-              <input
-                className="input"
-                value={form.guardian_name || ""}
-                onChange={(e) => set("guardian_name", e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="label">Teléfono del acudiente</label>
-              <input
-                className="input"
-                value={form.guardian_phone || ""}
-                onChange={(e) => set("guardian_phone", e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="label">Deporte</label>
-              <input
-                className="input"
-                value={form.sport || ""}
-                onChange={(e) => set("sport", e.target.value)}
-                placeholder="Volleyball, Fútbol, ..."
-              />
-            </div>
-            <div>
-              <label className="label">Categoría / grupo</label>
-              <input
-                className="input"
-                value={form.category || ""}
-                onChange={(e) => set("category", e.target.value)}
-                placeholder="Sub-15, Elite..."
-              />
-            </div>
-            <div>
-              <label className="label">Cuota mensual (COP)</label>
-              <input
-                type="number"
-                min={0}
-                step={1000}
-                className="input"
-                value={form.monthly_fee ?? 50000}
-                onChange={(e) => set("monthly_fee", Number(e.target.value))}
-              />
-            </div>
-            <div className="flex items-end">
-              <label className="flex items-center gap-2 text-sm text-slate-600">
-                <input
-                  type="checkbox"
-                  checked={!!form.is_active}
-                  onChange={(e) => set("is_active", e.target.checked)}
-                />
-                Estudiante activo
-              </label>
-            </div>
+          <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
-              <label className="label">Notas</label>
-              <textarea
+              <label className="label">Nombre completo</label>
+              <input
                 className="input"
-                rows={3}
-                value={form.notes || ""}
-                onChange={(e) => set("notes", e.target.value)}
+                required
+                value={form.full_name}
+                onChange={(e) => set("full_name", e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="label">Documento</label>
+              <input
+                className="input"
+                value={form.document_id || ""}
+                onChange={(e) => set("document_id", e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="label">Fecha de nacimiento</label>
+              <input
+                type="date"
+                className="input"
+                value={form.birth_date || ""}
+                onChange={(e) => set("birth_date", e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="label">Teléfono</label>
+              <input
+                className="input"
+                value={form.phone || ""}
+                onChange={(e) => set("phone", e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="label">Dirección</label>
+              <input
+                className="input"
+                value={form.address || ""}
+                onChange={(e) => set("address", e.target.value)}
               />
             </div>
           </div>
+        </div>
+      </section>
 
-          <div className="flex items-center justify-end gap-2 pt-2 border-t">
-            <button type="button" className="btn-ghost" onClick={onClose}>
-              Cancelar
-            </button>
-            <button type="submit" className="btn-primary" disabled={saving}>
-              {saving ? "Guardando..." : "Guardar"}
-            </button>
+      <section className="card p-6">
+        <div className="text-[11px] font-semibold uppercase tracking-[0.3em] text-titanes-red mb-3">
+          Acudiente y disciplina
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="label">Acudiente o representante</label>
+            <input
+              className="input"
+              value={form.guardian_name || ""}
+              onChange={(e) => set("guardian_name", e.target.value)}
+            />
           </div>
-        </form>
+          <div>
+            <label className="label">Teléfono del acudiente</label>
+            <input
+              className="input"
+              value={form.guardian_phone || ""}
+              onChange={(e) => set("guardian_phone", e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="label">Deporte</label>
+            <input
+              className="input"
+              value={form.sport || ""}
+              onChange={(e) => set("sport", e.target.value)}
+              placeholder="Volleyball, Fútbol"
+            />
+          </div>
+          <div>
+            <label className="label">Categoría o grupo</label>
+            <input
+              className="input"
+              value={form.category || ""}
+              onChange={(e) => set("category", e.target.value)}
+              placeholder="Sub 15, Elite"
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="card p-6">
+        <div className="text-[11px] font-semibold uppercase tracking-[0.3em] text-titanes-red mb-3">
+          Condiciones del club
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="label">Cuota mensual (COP)</label>
+            <input
+              type="number"
+              min={0}
+              step={1000}
+              className="input"
+              value={form.monthly_fee ?? 50000}
+              onChange={(e) => set("monthly_fee", Number(e.target.value))}
+            />
+          </div>
+          <div className="flex items-end">
+            <label className="flex items-center gap-3 text-sm font-medium text-slate-700">
+              <input
+                type="checkbox"
+                className="h-4 w-4 accent-titanes-navy"
+                checked={!!form.is_active}
+                onChange={(e) => set("is_active", e.target.checked)}
+              />
+              Estudiante activo en el roster
+            </label>
+          </div>
+          <div className="md:col-span-2">
+            <label className="label">Notas internas</label>
+            <textarea
+              className="input"
+              rows={3}
+              value={form.notes || ""}
+              onChange={(e) => set("notes", e.target.value)}
+            />
+          </div>
+        </div>
+      </section>
+
+      <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-200">
+        <button
+          type="button"
+          className="btn-ghost"
+          onClick={() => navigate(backTo)}
+        >
+          Cancelar
+        </button>
+        <button type="submit" className="btn-primary" disabled={saving}>
+          {saving ? "Guardando" : submitLabel}
+        </button>
       </div>
-    </div>
+    </form>
   );
 }

@@ -3,27 +3,34 @@ import { Link } from "react-router-dom";
 import { dashboardApi, paymentsApi } from "../api";
 import type { DashboardStats } from "../types";
 import { currentPeriod, formatCOP, MONTH_NAMES_ES } from "../utils";
+import PageHeader from "../components/PageHeader";
 
-function Stat({
+function StatCard({
   label,
   value,
-  accent = "slate",
+  accent,
+  hint,
 }: {
   label: string;
   value: string | number;
-  accent?: "slate" | "navy" | "red" | "emerald" | "amber";
+  accent?: "default" | "navy" | "red" | "emerald" | "amber";
+  hint?: string;
 }) {
-  const accents: Record<string, string> = {
-    slate: "bg-slate-50 text-slate-700",
-    navy: "bg-titanes-ice text-titanes-navy",
-    red: "bg-rose-50 text-titanes-crimson",
-    emerald: "bg-emerald-50 text-emerald-700",
-    amber: "bg-amber-50 text-amber-800",
+  const map: Record<string, string> = {
+    default: "border-slate-200",
+    navy: "border-titanes-navy",
+    red: "border-titanes-red",
+    emerald: "border-emerald-600",
+    amber: "border-amber-500",
   };
+  const border = map[accent || "default"];
   return (
-    <div className={`card p-4 ${accents[accent]}`}>
-      <div className="text-xs uppercase tracking-wide opacity-70">{label}</div>
-      <div className="mt-1 text-2xl font-display font-bold">{value}</div>
+    <div className={`card p-5 border-l-4 ${border}`}>
+      <div className="stat-label">{label}</div>
+      <div className="stat-num mt-2">{value}</div>
+      {hint && (
+        <div className="text-xs text-slate-500 mt-1 uppercase tracking-wide">{hint}</div>
+      )}
     </div>
   );
 }
@@ -46,6 +53,7 @@ export default function Dashboard() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
   }, []);
 
@@ -56,8 +64,8 @@ export default function Dashboard() {
       const { data } = await paymentsApi.generateMonth(year, month);
       setMessage(
         data.length === 0
-          ? `No se crearon pagos nuevos (ya existían para ${MONTH_NAMES_ES[month - 1]} ${year}).`
-          : `Se generaron ${data.length} pago(s) pendientes para ${MONTH_NAMES_ES[month - 1]} ${year}.`
+          ? `No se crearon cobros nuevos para ${MONTH_NAMES_ES[month - 1]} de ${year}. Ya existían.`
+          : `Se generaron ${data.length} cobros para ${MONTH_NAMES_ES[month - 1]} de ${year}.`
       );
       load();
     } finally {
@@ -65,80 +73,90 @@ export default function Dashboard() {
     }
   }
 
-  if (loading) {
-    return <div className="text-slate-500">Cargando...</div>;
-  }
-  if (!stats) {
-    return <div className="text-slate-500">Sin datos.</div>;
-  }
-
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="font-display text-3xl text-titanes-dark">Panel del Club</h1>
-          <p className="text-slate-500 text-sm">
-            Resumen de {MONTH_NAMES_ES[month - 1]} {year}
-          </p>
-        </div>
-        <button className="btn-primary" onClick={onGenerate} disabled={generating}>
-          {generating ? "Generando..." : `Generar cobros de ${MONTH_NAMES_ES[month - 1]}`}
-        </button>
-      </div>
+    <div>
+      <PageHeader
+        eyebrow="Oficina del Club"
+        title="Panel administrativo"
+        subtitle={`Resumen operativo de ${MONTH_NAMES_ES[month - 1]} de ${year}.`}
+        actions={
+          <>
+            <Link to="/estudiantes/nuevo" className="btn-primary">
+              Inscribir estudiante
+            </Link>
+            <button className="btn-ghost" onClick={onGenerate} disabled={generating}>
+              {generating ? "Generando" : `Generar cobros del mes`}
+            </button>
+          </>
+        }
+      />
 
       {message && (
-        <div className="rounded-md bg-titanes-ice text-titanes-navy px-4 py-2 text-sm border border-titanes-navy/20">
+        <div className="mb-6 border-l-4 border-titanes-navy bg-slate-50 px-4 py-3 text-sm text-slate-700">
           {message}
         </div>
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Stat label="Estudiantes activos" value={stats.active_students} accent="navy" />
-        <Stat label="Total estudiantes" value={stats.total_students} />
-        <Stat
-          label="Cobrado este mes"
-          value={formatCOP(stats.total_collected_this_month)}
-          accent="emerald"
-        />
-        <Stat
-          label="Pagos registrados este mes"
-          value={stats.payments_this_month}
-          accent="emerald"
-        />
-        <Stat
-          label="Pendientes este mes"
-          value={stats.pending_payments_this_month}
-          accent="amber"
-        />
-        <Stat
-          label="Deuda acumulada"
-          value={formatCOP(stats.total_pending)}
-          accent="red"
-        />
-        <Stat
-          label="Deuda atrasada"
-          value={formatCOP(stats.total_overdue_balance)}
-          accent="red"
-        />
-      </div>
+      {loading ? (
+        <div className="text-slate-500 uppercase tracking-widest text-xs">Cargando</div>
+      ) : stats ? (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard
+              label="Estudiantes activos"
+              value={stats.active_students}
+              hint={`de ${stats.total_students} registrados`}
+              accent="navy"
+            />
+            <StatCard
+              label="Cobrado este mes"
+              value={formatCOP(stats.total_collected_this_month)}
+              hint={`${stats.payments_this_month} pagos confirmados`}
+              accent="emerald"
+            />
+            <StatCard
+              label="Pendientes del mes"
+              value={stats.pending_payments_this_month}
+              hint={`${MONTH_NAMES_ES[month - 1]} ${year}`}
+              accent="amber"
+            />
+            <StatCard
+              label="Deuda total acumulada"
+              value={formatCOP(stats.total_pending)}
+              hint={`Atrasado: ${formatCOP(stats.total_overdue_balance)}`}
+              accent="red"
+            />
+          </div>
 
-      <div className="card p-6 flex flex-col md:flex-row gap-4 items-start md:items-center">
-        <img src="/logo.png" className="h-16 w-16 object-contain" alt="" />
-        <div className="flex-1">
-          <div className="font-display text-xl text-titanes-dark">Acciones rápidas</div>
-          <p className="text-sm text-slate-600">
-            Gestiona estudiantes y pagos, emite facturas y carnets virtuales.
-          </p>
-        </div>
-        <div className="flex gap-2 flex-wrap">
-          <Link to="/estudiantes" className="btn-primary">
-            Ver estudiantes
-          </Link>
-          <Link to="/pagos" className="btn-ghost">
-            Ir a pagos
-          </Link>
-        </div>
-      </div>
+          <div className="mt-8 card p-6">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-[0.3em] text-titanes-red mb-1">
+                  Operaciones
+                </div>
+                <h2 className="h-section">Accesos rápidos</h2>
+                <p className="text-sm text-slate-500 mt-1 max-w-lg">
+                  Administra el roster, registra pagos, emite facturas y carnets
+                  oficiales del club.
+                </p>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Link to="/estudiantes" className="btn-primary">
+                  Ver roster
+                </Link>
+                <Link to="/pagos" className="btn-ghost">
+                  Ir a pagos
+                </Link>
+                <Link to="/estudiantes/nuevo" className="btn-ghost">
+                  Nuevo estudiante
+                </Link>
+              </div>
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="text-slate-500">Sin datos.</div>
+      )}
     </div>
   );
 }
