@@ -63,9 +63,21 @@ class StudentUpdate(BaseModel):
 class StudentOut(StudentBase):
     model_config = ConfigDict(from_attributes=True)
     id: int
+    public_token: str | None = None
     join_date: date
     created_at: datetime
     updated_at: datetime
+
+
+class StudentPublic(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    full_name: str
+    sport: str | None = None
+    category: str | None = None
+    photo_url: str | None = None
+    join_date: date
+    is_active: bool
 
 
 class StudentSummary(StudentOut):

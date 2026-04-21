@@ -4,6 +4,7 @@ import Layout from "./components/Layout";
 import Protected from "./components/Protected";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
+import PublicCarnet from "./pages/PublicCarnet";
 import StudentsList from "./pages/students/StudentsList";
 import StudentNew from "./pages/students/StudentNew";
 import StudentDetail from "./pages/students/StudentDetail";
@@ -19,6 +20,7 @@ export default function App() {
     <AuthProvider>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/carnet/:token" element={<PublicCarnet />} />
         <Route
           element={
             <Protected>

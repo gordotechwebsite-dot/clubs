@@ -7,6 +7,7 @@ import type {
   AttendanceStatus,
   DashboardStats,
   Payment,
+  PublicStudent,
   Student,
   StudentInput,
 } from "./types";
@@ -133,6 +134,11 @@ export const attendanceApi = {
   update: (id: number, data: { status?: AttendanceStatus; notes?: string | null }) =>
     api.put<Attendance>(normalizePath(`/api/attendance/${id}`), data),
   remove: (id: number) => api.delete(normalizePath(`/api/attendance/${id}`)),
+};
+
+export const publicApi = {
+  carnet: (token: string) =>
+    api.get<PublicStudent>(normalizePath(`/api/public/carnet/${token}`)),
 };
 
 export const dashboardApi = {
