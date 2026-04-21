@@ -58,6 +58,7 @@ class Payment(Base):
     # Period: year & month the payment applies to (1-12)
     period_year: Mapped[int] = mapped_column(Integer, index=True)
     period_month: Mapped[int] = mapped_column(Integer, index=True)
+    due_date: Mapped[date | None] = mapped_column(Date, nullable=True, index=True)
     amount_due: Mapped[int] = mapped_column(Integer)  # COP
     amount_paid: Mapped[int] = mapped_column(Integer, default=0)
     status: Mapped[str] = mapped_column(String(32), default="pending")  # pending, paid, partial, overdue

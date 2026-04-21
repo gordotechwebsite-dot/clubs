@@ -16,9 +16,15 @@ from app.security import get_current_admin
 router = APIRouter(prefix="/api/payments", tags=["payments"])
 
 
+DUE_DAY = 10
+
+
+def _due_date_for(year: int, month: int) -> date:
+    return date(year, month, DUE_DAY)
+
+
 def _recompute_status(payment: Payment) -> None:
     today = date.today()
-    period_end = date(payment.period_year, payment.period_month, 28)
     if payment.amount_paid >= payment.amount_due and payment.amount_due > 0:
         payment.status = "paid"
         if payment.paid_at is None:
@@ -26,11 +32,82 @@ def _recompute_status(payment: Payment) -> None:
     elif payment.amount_paid > 0:
         payment.status = "partial"
     else:
-        # no payment; overdue if period is in the past
-        if (payment.period_year, payment.period_month) < (today.year, today.month):
+        due = payment.due_date or _due_date_for(payment.period_year, payment.period_month)
+        if due < today:
             payment.status = "overdue"
         else:
             payment.status = "pending"
+
+
+def ensure_month_payments(db: Session, year: int, month: int) -> int:
+    """Crea pagos pendientes para todos los deportistas activos que aún no tengan uno en el periodo."""
+    if month < 1 or month > 12:
+        return 0
+    students = db.query(Student).filter(Student.is_active.is_(True)).all()
+    created = 0
+    due = _due_date_for(year, month)
+    for s in students:
+        exists = (
+            db.query(Payment)
+            .filter(
+                Payment.student_id == s.id,
+                Payment.period_year == year,
+                Payment.period_month == month,
+            )
+            .first()
+        )
+        if exists:
+            if exists.due_date is None:
+                exists.due_date = due
+            continue
+        p = Payment(
+            student_id=s.id,
+            period_year=year,
+            period_month=month,
+            due_date=due,
+            amount_due=s.monthly_fee,
+            amount_paid=0,
+        )
+        _recompute_status(p)
+        db.add(p)
+        created += 1
+    if created:
+        db.commit()
+    else:
+        db.commit()  # persist due_date backfill if any
+    return created
+
+
+def ensure_current_month_payments(db: Session) -> int:
+    today = date.today()
+    return ensure_month_payments(db, today.year, today.month)
+
+
+def ensure_student_current_payment(db: Session, student: Student) -> None:
+    """Al crear o reactivar un deportista, asegura su pago pendiente del mes actual."""
+    today = date.today()
+    exists = (
+        db.query(Payment)
+        .filter(
+            Payment.student_id == student.id,
+            Payment.period_year == today.year,
+            Payment.period_month == today.month,
+        )
+        .first()
+    )
+    if exists:
+        return
+    p = Payment(
+        student_id=student.id,
+        period_year=today.year,
+        period_month=today.month,
+        due_date=_due_date_for(today.year, today.month),
+        amount_due=student.monthly_fee,
+        amount_paid=0,
+    )
+    _recompute_status(p)
+    db.add(p)
+    db.commit()
 
 
 @router.get("", response_model=list[PaymentOut])
@@ -44,6 +121,7 @@ def list_payments(
     db: Session = Depends(get_db),
     _: Admin = Depends(get_current_admin),
 ):
+    ensure_current_month_payments(db)
     q = db.query(Payment)
     if sport or category:
         q = q.join(Student, Payment.student_id == Student.id)
@@ -184,34 +262,13 @@ def generate_month(
     db: Session = Depends(get_db),
     _: Admin = Depends(get_current_admin),
 ):
-    """Genera registros de pago pendiente para todos los estudiantes activos en el mes indicado."""
+    """Genera registros de pago pendiente para todos los deportistas activos en el mes indicado."""
     if month < 1 or month > 12:
         raise HTTPException(status_code=400, detail="Mes inválido")
-    students = db.query(Student).filter(Student.is_active.is_(True)).all()
-    created: list[Payment] = []
-    for s in students:
-        exists = (
-            db.query(Payment)
-            .filter(
-                Payment.student_id == s.id,
-                Payment.period_year == year,
-                Payment.period_month == month,
-            )
-            .first()
-        )
-        if exists:
-            continue
-        p = Payment(
-            student_id=s.id,
-            period_year=year,
-            period_month=month,
-            amount_due=s.monthly_fee,
-            amount_paid=0,
-        )
-        _recompute_status(p)
-        db.add(p)
-        created.append(p)
-    db.commit()
-    for p in created:
-        db.refresh(p)
-    return created
+    ensure_month_payments(db, year, month)
+    return (
+        db.query(Payment)
+        .filter(Payment.period_year == year, Payment.period_month == month)
+        .order_by(Payment.id.desc())
+        .all()
+    )

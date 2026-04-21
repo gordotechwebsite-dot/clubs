@@ -8,8 +8,12 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.database import Base, SessionLocal, engine
-from app.models import Admin, Student
+from app.models import Admin, Payment, Student
 from app.routers import attendance, auth, dashboard, payments, public, students
+from app.routers.payments import (
+    _due_date_for,
+    ensure_current_month_payments,
+)
 from app.security import hash_password
 
 logger = logging.getLogger("uvicorn")
@@ -18,14 +22,23 @@ logger = logging.getLogger("uvicorn")
 def _migrate_schema() -> None:
     """Lightweight in-place migrations for SQLite."""
     inspector = inspect(engine)
-    columns = {col["name"] for col in inspector.get_columns("students")}
+    student_cols = {col["name"] for col in inspector.get_columns("students")}
+    payment_cols = {col["name"] for col in inspector.get_columns("payments")}
     with engine.begin() as conn:
-        if "public_token" not in columns:
+        if "public_token" not in student_cols:
             conn.execute(text("ALTER TABLE students ADD COLUMN public_token VARCHAR(64)"))
             conn.execute(
                 text(
                     "CREATE UNIQUE INDEX IF NOT EXISTS ix_students_public_token "
                     "ON students(public_token)"
+                )
+            )
+        if "due_date" not in payment_cols:
+            conn.execute(text("ALTER TABLE payments ADD COLUMN due_date DATE"))
+            conn.execute(
+                text(
+                    "CREATE INDEX IF NOT EXISTS ix_payments_due_date "
+                    "ON payments(due_date)"
                 )
             )
 
@@ -53,6 +66,17 @@ def _init_db() -> None:
                 s.public_token = uuid.uuid4().hex
             db.commit()
             logger.info("Backfill de public_token para %d deportistas", len(pending))
+
+        legacy = db.query(Payment).filter(Payment.due_date.is_(None)).all()
+        if legacy:
+            for p in legacy:
+                p.due_date = _due_date_for(p.period_year, p.period_month)
+            db.commit()
+            logger.info("Backfill de due_date para %d pagos", len(legacy))
+
+        created = ensure_current_month_payments(db)
+        if created:
+            logger.info("Auto-generados %d pagos del mes actual", created)
     finally:
         db.close()
 

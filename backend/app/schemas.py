@@ -92,6 +92,7 @@ class PaymentBase(BaseModel):
     student_id: int
     period_year: int
     period_month: int
+    due_date: date | None = None
     amount_due: int
     amount_paid: int = 0
     status: str = "pending"
@@ -108,6 +109,7 @@ class PaymentCreate(PaymentBase):
 class PaymentUpdate(BaseModel):
     amount_due: int | None = None
     amount_paid: int | None = None
+    due_date: date | None = None
     status: str | None = None
     paid_at: datetime | None = None
     payment_method: str | None = None

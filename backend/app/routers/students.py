@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import Student, Payment, Admin
+from app.routers.payments import ensure_student_current_payment
 from app.schemas import StudentCreate, StudentOut, StudentUpdate, StudentSummary
 from app.security import get_current_admin
 
@@ -81,6 +82,9 @@ def create_student(
     db.add(student)
     db.commit()
     db.refresh(student)
+    if student.is_active:
+        ensure_student_current_payment(db, student)
+        db.refresh(student)
     return _summarize(db, student)
 
 
@@ -106,10 +110,14 @@ def update_student(
     student = db.get(Student, student_id)
     if not student:
         raise HTTPException(status_code=404, detail="Estudiante no encontrado")
+    was_active = student.is_active
     for k, v in payload.model_dump(exclude_unset=True).items():
         setattr(student, k, v)
     db.commit()
     db.refresh(student)
+    if student.is_active and not was_active:
+        ensure_student_current_payment(db, student)
+        db.refresh(student)
     return _summarize(db, student)
 
 
