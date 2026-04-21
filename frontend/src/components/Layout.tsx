@@ -15,16 +15,16 @@ export default function Layout() {
   return (
     <div className="min-h-full flex flex-col bg-slate-50">
       <header className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center gap-6">
-          <Link to="/" className="flex items-center gap-4">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center gap-3 md:gap-6">
+          <Link to="/" className="flex items-center gap-3 md:gap-4 min-w-0">
             <img
               src="/logo.png"
               alt="Club Titanes"
-              className="h-14 w-14 object-contain"
+              className="h-10 w-10 md:h-14 md:w-14 object-contain shrink-0"
             />
-            <div className="leading-tight">
-              <div className="display text-2xl text-slate-900">CLUB TITANES</div>
-              <div className="text-[10px] font-semibold uppercase tracking-[0.4em] text-slate-500">
+            <div className="leading-tight min-w-0">
+              <div className="display text-lg md:text-2xl text-slate-900 truncate">CLUB TITANES</div>
+              <div className="text-[9px] md:text-[10px] font-semibold uppercase tracking-[0.3em] md:tracking-[0.4em] text-slate-500 truncate">
                 Soatá Boyacá
               </div>
             </div>
@@ -43,7 +43,7 @@ export default function Layout() {
               Asistencia
             </NavLink>
           </nav>
-          <div className="flex items-center gap-4 text-sm">
+          <div className="ml-auto md:ml-0 flex items-center gap-2 md:gap-4 text-sm">
             <div className="hidden md:block text-right leading-tight">
               <div className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
                 Administrador
@@ -53,13 +53,13 @@ export default function Layout() {
               </div>
             </div>
             <button
-              className="btn-ghost"
+              className="btn-ghost px-3 py-2 text-[10px] md:text-xs md:px-5 md:py-2.5"
               onClick={() => {
                 logout();
                 navigate("/login");
               }}
             >
-              Cerrar sesión
+              Salir
             </button>
           </div>
         </div>
@@ -82,12 +82,12 @@ export default function Layout() {
         </div>
       </nav>
       <main className="flex-1">
-        <div className="max-w-7xl mx-auto px-6 py-10">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-10">
           <Outlet />
         </div>
       </main>
       <footer className="border-t border-slate-200 bg-white">
-        <div className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between text-xs text-slate-500">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-5 md:py-6 flex items-center justify-between gap-3 text-xs text-slate-500">
           <div className="flex items-center gap-3">
             <img src="/logo.png" alt="" className="h-8 w-8 object-contain opacity-80" />
             <div>
@@ -97,8 +97,8 @@ export default function Layout() {
               </div>
             </div>
           </div>
-          <div className="text-right uppercase tracking-widest text-[10px]">
-            Registro oficial del club
+          <div className="text-right uppercase tracking-widest text-[9px] md:text-[10px]">
+            <span className="hidden sm:inline">Registro oficial del club</span>
             <div className="text-slate-400 normal-case tracking-normal mt-0.5">
               {new Date().getFullYear()} Club Titanes
             </div>
