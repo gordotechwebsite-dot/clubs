@@ -1,3 +1,14 @@
+export const SPORTS = ["Fútbol", "Voleibol", "Natación"] as const;
+export type Sport = (typeof SPORTS)[number];
+
+export const CATEGORIES = [
+  "Infantil",
+  "Pre-Juvenil",
+  "Juvenil",
+  "Adultos",
+] as const;
+export type Category = (typeof CATEGORIES)[number];
+
 export const MONTH_NAMES_ES = [
   "Enero",
   "Febrero",

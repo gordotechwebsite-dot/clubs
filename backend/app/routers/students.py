@@ -43,6 +43,8 @@ def _summarize(db: Session, student: Student) -> StudentSummary:
 @router.get("", response_model=list[StudentSummary])
 def list_students(
     search: str | None = None,
+    sport: str | None = None,
+    category: str | None = None,
     active_only: bool = False,
     db: Session = Depends(get_db),
     _: Admin = Depends(get_current_admin),
@@ -50,6 +52,10 @@ def list_students(
     q = db.query(Student)
     if active_only:
         q = q.filter(Student.is_active.is_(True))
+    if sport:
+        q = q.filter(Student.sport == sport)
+    if category:
+        q = q.filter(Student.category == category)
     if search:
         like = f"%{search}%"
         q = q.filter(

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { attendanceApi, paymentsApi, studentsApi } from "../../api";
 import type { Attendance, AttendanceStats, Payment, Student } from "../../types";
 import AttendanceBadge from "../../components/AttendanceBadge";
@@ -21,7 +21,6 @@ function DetailItem({ label, value }: { label: string; value: string }) {
 
 export default function StudentDetail() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const studentId = Number(id);
   const [student, setStudent] = useState<Student | null>(null);
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -84,27 +83,15 @@ export default function StudentDetail() {
     load();
   }
 
-  async function onDeletePayment(p: Payment) {
-    if (
-      !confirm(
-        `Eliminar el cobro de ${MONTH_NAMES_ES[p.period_month - 1]} ${p.period_year}?`
-      )
-    )
-      return;
-    await paymentsApi.remove(p.id);
-    load();
-  }
-
-  async function onDeleteStudent() {
+  async function onArchiveStudent() {
     if (!student) return;
-    if (
-      !confirm(
-        `Eliminar a ${student.full_name} de la plantilla? Esta acción no se puede deshacer.`
-      )
-    )
-      return;
-    await studentsApi.remove(student.id);
-    navigate("/estudiantes");
+    const nextActive = !student.is_active;
+    const mensaje = nextActive
+      ? `Restaurar a ${student.full_name} como activo en la plantilla?`
+      : `Archivar a ${student.full_name}?\n\nEl registro y sus datos se conservan; solo deja de aparecer en los listados activos.`;
+    if (!confirm(mensaje)) return;
+    await studentsApi.update(student.id, { is_active: nextActive });
+    load();
   }
 
   if (loading || !student) {
@@ -125,8 +112,8 @@ export default function StudentDetail() {
             <Link to={`/estudiantes/${student.id}/editar`} className="btn-ghost">
               Editar datos
             </Link>
-            <button className="btn-danger" onClick={onDeleteStudent}>
-              Eliminar
+            <button className="btn-ghost" onClick={onArchiveStudent}>
+              {student.is_active ? "Archivar" : "Restaurar"}
             </button>
           </>
         }
@@ -358,12 +345,6 @@ export default function StudentDetail() {
                       Revertir
                     </button>
                   )}
-                  <button
-                    className="text-[11px] font-semibold uppercase tracking-widest text-rose-700 hover:text-rose-900"
-                    onClick={() => onDeletePayment(p)}
-                  >
-                    Eliminar
-                  </button>
                 </td>
               </tr>
             ))}

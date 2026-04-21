@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { dashboardApi, paymentsApi } from "../api";
-import type { DashboardStats } from "../types";
-import { currentPeriod, formatCOP, MONTH_NAMES_ES } from "../utils";
+import { dashboardApi, paymentsApi, studentsApi } from "../api";
+import type { DashboardStats, Student } from "../types";
+import { currentPeriod, formatCOP, MONTH_NAMES_ES, SPORTS } from "../utils";
 import PageHeader from "../components/PageHeader";
 
 function StatCard({
@@ -37,6 +37,7 @@ function StatCard({
 
 export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -45,12 +46,28 @@ export default function Dashboard() {
   async function load() {
     setLoading(true);
     try {
-      const { data } = await dashboardApi.stats();
-      setStats(data);
+      const [statsRes, studentsRes] = await Promise.all([
+        dashboardApi.stats(),
+        studentsApi.list({ active_only: true }),
+      ]);
+      setStats(statsRes.data);
+      setStudents(studentsRes.data);
     } finally {
       setLoading(false);
     }
   }
+
+  const bySport = useMemo(() => {
+    return SPORTS.map((sport) => {
+      const rows = students.filter((s) => s.sport === sport);
+      const pending = rows.reduce((a, s) => a + (s.balance > 0 ? s.balance : 0), 0);
+      return {
+        sport,
+        total: rows.length,
+        pending,
+      };
+    });
+  }, [students]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -126,6 +143,28 @@ export default function Dashboard() {
               hint={`Atrasado: ${formatCOP(stats.total_overdue_balance)}`}
               accent="red"
             />
+          </div>
+
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+            {bySport.map((row) => (
+              <div key={row.sport} className="card p-5">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.3em] text-titanes-red">
+                  {row.sport}
+                </div>
+                <div className="stat-num mt-2">{row.total}</div>
+                <div className="text-xs text-slate-500 mt-1 uppercase tracking-wide">
+                  deportistas activos
+                </div>
+                <div className="mt-4 flex items-baseline justify-between border-t border-slate-100 pt-3">
+                  <div className="text-xs text-slate-500 uppercase tracking-wider">
+                    Saldo pendiente
+                  </div>
+                  <div className="font-mono font-semibold text-titanes-crimson">
+                    {formatCOP(row.pending)}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
 
           <div className="mt-8 card p-6">

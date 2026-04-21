@@ -4,7 +4,7 @@ import { attendanceApi, studentsApi } from "../../api";
 import type { Attendance, Student } from "../../types";
 import PageHeader from "../../components/PageHeader";
 import AttendanceBadge from "../../components/AttendanceBadge";
-import { formatDateEs } from "../../utils";
+import { CATEGORIES, formatDateEs, SPORTS } from "../../utils";
 
 function firstOfMonth(): string {
   const d = new Date();
@@ -20,6 +20,8 @@ export default function AttendanceHistory() {
   const [dateFrom, setDateFrom] = useState(firstOfMonth());
   const [dateTo, setDateTo] = useState(today());
   const [studentFilter, setStudentFilter] = useState<string>("");
+  const [sportFilter, setSportFilter] = useState<string>("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("");
   const [students, setStudents] = useState<Record<number, Student>>({});
   const [records, setRecords] = useState<Attendance[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,7 +43,14 @@ export default function AttendanceHistory() {
         date_from: dateFrom || undefined,
         date_to: dateTo || undefined,
       });
-      setRecords(data);
+      const filtered = data.filter((r) => {
+        const s = students[r.student_id];
+        if (!s) return true;
+        if (sportFilter && s.sport !== sportFilter) return false;
+        if (categoryFilter && s.category !== categoryFilter) return false;
+        return true;
+      });
+      setRecords(filtered);
     } finally {
       setLoading(false);
     }
@@ -56,7 +65,7 @@ export default function AttendanceHistory() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dateFrom, dateTo, studentFilter]);
+  }, [dateFrom, dateTo, studentFilter, sportFilter, categoryFilter, students]);
 
   const totals = useMemo(() => {
     const base = { present: 0, absent: 0, late: 0, excused: 0 };
@@ -74,12 +83,6 @@ export default function AttendanceHistory() {
     () => Object.values(students).sort((a, b) => a.full_name.localeCompare(b.full_name)),
     [students]
   );
-
-  async function onDelete(id: number) {
-    if (!confirm("¿Eliminar este registro de asistencia?")) return;
-    await attendanceApi.remove(id);
-    load();
-  }
 
   return (
     <div>
@@ -112,6 +115,36 @@ export default function AttendanceHistory() {
             value={dateTo}
             onChange={(e) => setDateTo(e.target.value)}
           />
+        </div>
+        <div>
+          <label className="label">Deporte</label>
+          <select
+            className="input w-44"
+            value={sportFilter}
+            onChange={(e) => setSportFilter(e.target.value)}
+          >
+            <option value="">Todos</option>
+            {SPORTS.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="label">Categoría</label>
+          <select
+            className="input w-44"
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+          >
+            <option value="">Todas</option>
+            {CATEGORIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           <label className="label">Deportista</label>
@@ -167,10 +200,10 @@ export default function AttendanceHistory() {
                 Estado
               </th>
               <th className="text-left px-6 py-3 text-[11px] font-semibold uppercase tracking-widest text-slate-500">
-                Observaciones
+                Disciplina
               </th>
-              <th className="text-right px-6 py-3 text-[11px] font-semibold uppercase tracking-widest text-slate-500">
-                Acciones
+              <th className="text-left px-6 py-3 text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                Observaciones
               </th>
             </tr>
           </thead>
@@ -211,15 +244,10 @@ export default function AttendanceHistory() {
                       <AttendanceBadge status={r.status} />
                     </td>
                     <td className="px-6 py-3 text-sm text-slate-600">
-                      {r.notes || "—"}
+                      {s ? [s.sport, s.category].filter(Boolean).join(" / ") || "—" : "—"}
                     </td>
-                    <td className="px-6 py-3 text-right">
-                      <button
-                        className="btn-link text-titanes-red hover:text-titanes-crimson"
-                        onClick={() => onDelete(r.id)}
-                      >
-                        Eliminar
-                      </button>
+                    <td className="px-6 py-3 text-sm text-slate-600">
+                      {r.notes || "—"}
                     </td>
                   </tr>
                 );

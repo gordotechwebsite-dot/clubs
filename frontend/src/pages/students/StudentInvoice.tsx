@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { paymentsApi, studentsApi } from "../../api";
 import type { Payment, Student } from "../../types";
 import { formatCOP, formatDateEs, MONTH_NAMES_ES, whatsappLink } from "../../utils";
@@ -7,15 +7,21 @@ import PageHeader from "../../components/PageHeader";
 import PaymentBadge from "../../components/PaymentBadge";
 import { downloadInvoice } from "../../invoice";
 
-type Scope = "pending" | "all";
+type Scope = "period" | "pending" | "all";
 
 export default function StudentInvoice() {
   const { id } = useParams<{ id: string }>();
   const studentId = Number(id);
+  const [params] = useSearchParams();
+  const qYear = params.get("year");
+  const qMonth = params.get("month");
+  const periodYear = qYear ? Number(qYear) : null;
+  const periodMonth = qMonth ? Number(qMonth) : null;
+  const hasPeriod = periodYear !== null && periodMonth !== null;
   const [student, setStudent] = useState<Student | null>(null);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [scope, setScope] = useState<Scope>("pending");
+  const [scope, setScope] = useState<Scope>(hasPeriod ? "period" : "pending");
 
   async function load() {
     setLoading(true);
@@ -38,12 +44,17 @@ export default function StudentInvoice() {
   }, [studentId]);
 
   const filtered = useMemo(() => {
+    if (scope === "period" && hasPeriod) {
+      return payments.filter(
+        (p) => p.period_year === periodYear && p.period_month === periodMonth
+      );
+    }
     if (scope === "pending") {
       const pend = payments.filter((p) => p.status !== "paid");
       return pend.length > 0 ? pend : payments;
     }
     return payments;
-  }, [payments, scope]);
+  }, [payments, scope, hasPeriod, periodYear, periodMonth]);
 
   const totals = useMemo(() => {
     const due = filtered.reduce((a, p) => a + p.amount_due, 0);
@@ -117,6 +128,17 @@ export default function StudentInvoice() {
         <div className="text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-500">
           Alcance
         </div>
+        {hasPeriod && (
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="radio"
+              className="accent-titanes-navy"
+              checked={scope === "period"}
+              onChange={() => setScope("period")}
+            />
+            {`${MONTH_NAMES_ES[(periodMonth as number) - 1]} ${periodYear}`}
+          </label>
+        )}
         <label className="flex items-center gap-2 text-sm">
           <input
             type="radio"
@@ -165,6 +187,20 @@ export default function StudentInvoice() {
             <div className="text-[11px] uppercase tracking-widest text-slate-500">
               Facturado a
             </div>
+            <div className="font-semibold text-slate-900 text-lg">
+              {student.guardian_name || "Sin acudiente registrado"}
+            </div>
+            <div className="text-sm text-slate-600">
+              {student.guardian_phone ? `Tel. ${student.guardian_phone}` : "Sin teléfono"}
+            </div>
+            <div className="text-sm text-slate-600">
+              {student.address || ""}
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-[11px] uppercase tracking-widest text-slate-500">
+              Deportista
+            </div>
             <div className="font-semibold text-slate-900 text-lg">{student.full_name}</div>
             <div className="text-sm text-slate-600">
               {student.document_id ? `Documento ${student.document_id}` : "Sin documento"}
@@ -172,18 +208,9 @@ export default function StudentInvoice() {
             <div className="text-sm text-slate-600">
               {[student.sport, student.category].filter(Boolean).join(" / ") || "Deportista"}
             </div>
-          </div>
-          <div className="text-right">
-            <div className="text-[11px] uppercase tracking-widest text-slate-500">
-              Contacto
-            </div>
-            <div className="text-sm text-slate-700">{student.phone || "Sin teléfono"}</div>
-            <div className="text-sm text-slate-700">
-              {student.guardian_name ? `Acudiente: ${student.guardian_name}` : ""}
-            </div>
-            <div className="text-sm text-slate-700">
-              {student.guardian_phone ? `Tel. ${student.guardian_phone}` : ""}
-            </div>
+            {student.phone ? (
+              <div className="text-sm text-slate-600">Tel. {student.phone}</div>
+            ) : null}
           </div>
         </div>
 

@@ -2,15 +2,18 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { paymentsApi, studentsApi } from "../../api";
 import type { Payment, Student } from "../../types";
-import { currentPeriod, formatCOP, formatDateEs, MONTH_NAMES_ES } from "../../utils";
+import { CATEGORIES, currentPeriod, formatCOP, formatDateEs, MONTH_NAMES_ES, SPORTS } from "../../utils";
 import PageHeader from "../../components/PageHeader";
 import PaymentBadge from "../../components/PaymentBadge";
+import { downloadInvoice } from "../../invoice";
 
 export default function PaymentsList() {
   const { year: nowYear, month: nowMonth } = currentPeriod();
   const [year, setYear] = useState<number>(nowYear);
   const [month, setMonth] = useState<number>(nowMonth);
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [sport, setSport] = useState<string>("");
+  const [category, setCategory] = useState<string>("");
   const [payments, setPayments] = useState<Payment[]>([]);
   const [students, setStudents] = useState<Record<number, Student>>({});
   const [loading, setLoading] = useState(true);
@@ -21,7 +24,13 @@ export default function PaymentsList() {
     setLoading(true);
     try {
       const [p, s] = await Promise.all([
-        paymentsApi.list({ year, month, status_filter: statusFilter || undefined }),
+        paymentsApi.list({
+          year,
+          month,
+          status_filter: statusFilter || undefined,
+          sport: sport || undefined,
+          category: category || undefined,
+        }),
         studentsApi.list(),
       ]);
       setPayments(p.data);
@@ -39,7 +48,7 @@ export default function PaymentsList() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [year, month, statusFilter]);
+  }, [year, month, statusFilter, sport, category]);
 
   async function onGenerate() {
     setGenerating(true);
@@ -65,6 +74,12 @@ export default function PaymentsList() {
   async function onMarkUnpaid(p: Payment) {
     await paymentsApi.markUnpaid(p.id);
     load();
+  }
+
+  async function onDownloadPdf(p: Payment) {
+    const s = students[p.student_id];
+    if (!s) return;
+    await downloadInvoice(s, [p]);
   }
 
   const totals = useMemo(() => {
@@ -113,9 +128,39 @@ export default function PaymentsList() {
           </select>
         </div>
         <div>
+          <label className="label">Deporte</label>
+          <select
+            className="input w-44"
+            value={sport}
+            onChange={(e) => setSport(e.target.value)}
+          >
+            <option value="">Todos</option>
+            {SPORTS.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="label">Categoría</label>
+          <select
+            className="input w-44"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+          >
+            <option value="">Todas</option>
+            {CATEGORIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
           <label className="label">Estado</label>
           <select
-            className="input w-48"
+            className="input w-44"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
@@ -224,21 +269,39 @@ export default function PaymentsList() {
                     {formatDateEs(p.paid_at)}
                   </td>
                   <td className="px-4 py-3 text-right whitespace-nowrap">
-                    {p.status !== "paid" ? (
-                      <button
-                        className="btn-link text-emerald-700 hover:text-emerald-900"
-                        onClick={() => onMarkPaid(p)}
-                      >
-                        Marcar pagado
-                      </button>
-                    ) : (
-                      <button
-                        className="btn-link text-amber-700 hover:text-amber-900"
-                        onClick={() => onMarkUnpaid(p)}
-                      >
-                        Revertir
-                      </button>
-                    )}
+                    <div className="flex flex-col items-end gap-1">
+                      {s && (
+                        <Link
+                          to={`/estudiantes/${s.id}/factura?year=${p.period_year}&month=${p.period_month}`}
+                          className="btn-link text-titanes-navy hover:text-slate-900"
+                        >
+                          Ver factura
+                        </Link>
+                      )}
+                      {s && (
+                        <button
+                          className="btn-link text-slate-600 hover:text-slate-900"
+                          onClick={() => onDownloadPdf(p)}
+                        >
+                          Descargar PDF
+                        </button>
+                      )}
+                      {p.status !== "paid" ? (
+                        <button
+                          className="btn-link text-emerald-700 hover:text-emerald-900"
+                          onClick={() => onMarkPaid(p)}
+                        >
+                          Marcar pagado
+                        </button>
+                      ) : (
+                        <button
+                          className="btn-link text-amber-700 hover:text-amber-900"
+                          onClick={() => onMarkUnpaid(p)}
+                        >
+                          Revertir
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               );

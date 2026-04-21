@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { studentsApi } from "../../api";
 import type { Student } from "../../types";
-import { formatCOP } from "../../utils";
+import { CATEGORIES, formatCOP, SPORTS } from "../../utils";
 import PageHeader from "../../components/PageHeader";
 import StudentPhoto from "../../components/StudentPhoto";
 
@@ -10,13 +10,17 @@ export default function StudentsList() {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [activeOnly, setActiveOnly] = useState(false);
+  const [sport, setSport] = useState<string>("");
+  const [category, setCategory] = useState<string>("");
+  const [activeOnly, setActiveOnly] = useState(true);
 
   async function load() {
     setLoading(true);
     try {
       const { data } = await studentsApi.list({
         search: search || undefined,
+        sport: sport || undefined,
+        category: category || undefined,
         active_only: activeOnly,
       });
       setStudents(data);
@@ -29,22 +33,21 @@ export default function StudentsList() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [sport, category, activeOnly]);
 
   function onSearchSubmit(e: React.FormEvent) {
     e.preventDefault();
     load();
   }
 
-  async function onDelete(s: Student) {
-    if (
-      !confirm(
-        `Eliminar a ${s.full_name} de la plantilla?\n\nTambién se borrarán sus pagos registrados. Esta acción no se puede deshacer.`
-      )
-    ) {
-      return;
-    }
-    await studentsApi.remove(s.id);
+  async function onArchiveToggle(s: Student) {
+    const nextActive = !s.is_active;
+    const verbo = nextActive ? "Restaurar" : "Archivar";
+    const mensaje = nextActive
+      ? `Restaurar a ${s.full_name} como activo en la plantilla?`
+      : `Archivar a ${s.full_name}?\n\nEl registro y todos sus datos se conservan, solo deja de aparecer en los listados activos.`;
+    if (!confirm(`${verbo} ${mensaje}`)) return;
+    await studentsApi.update(s.id, { is_active: nextActive });
     load();
   }
 
@@ -74,6 +77,36 @@ export default function StudentsList() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
+        <div>
+          <label className="label">Deporte</label>
+          <select
+            className="input w-48"
+            value={sport}
+            onChange={(e) => setSport(e.target.value)}
+          >
+            <option value="">Todos</option>
+            {SPORTS.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="label">Categoría</label>
+          <select
+            className="input w-44"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+          >
+            <option value="">Todas</option>
+            {CATEGORIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+        </div>
         <label className="flex items-center gap-2 text-sm text-slate-700 pb-2">
           <input
             type="checkbox"
@@ -84,7 +117,7 @@ export default function StudentsList() {
           Solo activos
         </label>
         <button type="submit" className="btn-ghost">
-          Aplicar filtros
+          Buscar
         </button>
       </form>
 
@@ -170,10 +203,10 @@ export default function StudentsList() {
                     Ver ficha
                   </Link>
                   <button
-                    className="text-[11px] font-semibold uppercase tracking-widest text-rose-700 hover:text-rose-900"
-                    onClick={() => onDelete(s)}
+                    className="text-[11px] font-semibold uppercase tracking-widest text-slate-600 hover:text-slate-900"
+                    onClick={() => onArchiveToggle(s)}
                   >
-                    Eliminar
+                    {s.is_active ? "Archivar" : "Restaurar"}
                   </button>
                 </td>
               </tr>

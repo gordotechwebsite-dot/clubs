@@ -77,8 +77,12 @@ export const authApi = {
 };
 
 export const studentsApi = {
-  list: (params?: { search?: string; active_only?: boolean }) =>
-    api.get<Student[]>(normalizePath("/api/students"), { params }),
+  list: (params?: {
+    search?: string;
+    sport?: string;
+    category?: string;
+    active_only?: boolean;
+  }) => api.get<Student[]>(normalizePath("/api/students"), { params }),
   get: (id: number) => api.get<Student>(normalizePath(`/api/students/${id}`)),
   create: (data: StudentInput) => api.post<Student>(normalizePath("/api/students"), data),
   update: (id: number, data: Partial<StudentInput>) =>
@@ -87,8 +91,14 @@ export const studentsApi = {
 };
 
 export const paymentsApi = {
-  list: (params?: { student_id?: number; year?: number; month?: number; status_filter?: string }) =>
-    api.get<Payment[]>(normalizePath("/api/payments"), { params }),
+  list: (params?: {
+    student_id?: number;
+    year?: number;
+    month?: number;
+    status_filter?: string;
+    sport?: string;
+    category?: string;
+  }) => api.get<Payment[]>(normalizePath("/api/payments"), { params }),
   create: (data: Partial<Payment> & { student_id: number; period_year: number; period_month: number; amount_due: number }) =>
     api.post<Payment>(normalizePath("/api/payments"), data),
   update: (id: number, data: Partial<Payment>) =>
