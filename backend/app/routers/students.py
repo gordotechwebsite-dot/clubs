@@ -1,5 +1,5 @@
 import uuid
-from datetime import date
+from datetime import date, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import case, select, func
@@ -8,7 +8,15 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import Student, Payment, Admin
 from app.routers.payments import ensure_student_current_payment
-from app.schemas import StudentCreate, StudentOut, StudentUpdate, StudentSummary
+from app.schemas import (
+    AccountStatement,
+    AccountStatementLine,
+    SearchStudent,
+    StudentCreate,
+    StudentOut,
+    StudentSummary,
+    StudentUpdate,
+)
 from app.security import get_current_admin
 
 router = APIRouter(prefix="/api/students", tags=["students"])
@@ -88,6 +96,33 @@ def create_student(
     return _summarize(db, student)
 
 
+@router.get("/search", response_model=list[SearchStudent])
+def search_students(
+    q: str,
+    limit: int = 10,
+    db: Session = Depends(get_db),
+    _: Admin = Depends(get_current_admin),
+):
+    term = q.strip()
+    if len(term) < 2:
+        return []
+    like = f"%{term}%"
+    rows = (
+        db.query(Student)
+        .filter(
+            (Student.full_name.ilike(like))
+            | (Student.document_id.ilike(like))
+            | (Student.phone.ilike(like))
+            | (Student.guardian_name.ilike(like))
+            | (Student.guardian_phone.ilike(like))
+        )
+        .order_by(Student.is_active.desc(), Student.full_name.asc())
+        .limit(max(1, min(limit, 25)))
+        .all()
+    )
+    return rows
+
+
 @router.get("/{student_id}", response_model=StudentSummary)
 def get_student(
     student_id: int,
@@ -98,6 +133,66 @@ def get_student(
     if not student:
         raise HTTPException(status_code=404, detail="Estudiante no encontrado")
     return _summarize(db, student)
+
+
+@router.get("/{student_id}/statement", response_model=AccountStatement)
+def account_statement(
+    student_id: int,
+    db: Session = Depends(get_db),
+    _: Admin = Depends(get_current_admin),
+):
+    student = db.get(Student, student_id)
+    if not student:
+        raise HTTPException(status_code=404, detail="Deportista no encontrado")
+
+    payments = (
+        db.query(Payment)
+        .filter(Payment.student_id == student_id)
+        .order_by(Payment.period_year.desc(), Payment.period_month.desc())
+        .all()
+    )
+    lines: list[AccountStatementLine] = []
+    total_due = 0
+    total_paid = 0
+    pending_months = 0
+    overdue_months = 0
+    for p in payments:
+        balance = max(0, int(p.amount_due) - int(p.amount_paid))
+        total_due += int(p.amount_due)
+        total_paid += int(p.amount_paid)
+        if p.status in ("pending", "partial", "overdue"):
+            pending_months += 1
+        if p.status == "overdue":
+            overdue_months += 1
+        lines.append(
+            AccountStatementLine(
+                payment_id=p.id,
+                period_year=p.period_year,
+                period_month=p.period_month,
+                due_date=p.due_date,
+                amount_due=int(p.amount_due),
+                amount_paid=int(p.amount_paid),
+                balance=balance,
+                status=p.status,
+                paid_at=p.paid_at,
+            )
+        )
+    return AccountStatement(
+        student_id=student.id,
+        student_name=student.full_name,
+        sport=student.sport,
+        category=student.category,
+        guardian_name=student.guardian_name,
+        guardian_phone=student.guardian_phone,
+        monthly_fee=int(student.monthly_fee),
+        generated_at=datetime.utcnow(),
+        total_due=total_due,
+        total_paid=total_paid,
+        balance=max(0, total_due - total_paid),
+        pending_months=pending_months,
+        overdue_months=overdue_months,
+        lines=lines,
+    )
 
 
 @router.put("/{student_id}", response_model=StudentSummary)

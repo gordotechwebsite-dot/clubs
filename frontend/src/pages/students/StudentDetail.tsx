@@ -112,6 +112,9 @@ export default function StudentDetail() {
             <Link to={`/estudiantes/${student.id}/editar`} className="btn-ghost">
               Editar datos
             </Link>
+            <Link to={`/estudiantes/${student.id}/estado-de-cuenta`} className="btn-ghost">
+              Estado de cuenta
+            </Link>
             <button className="btn-ghost" onClick={onArchiveStudent}>
               {student.is_active ? "Archivar" : "Restaurar"}
             </button>

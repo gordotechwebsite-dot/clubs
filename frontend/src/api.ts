@@ -1,13 +1,19 @@
 import axios, { AxiosError } from "axios";
 import type {
+  AccountStatement,
   Admin,
+  AdminInput,
+  AdminRole,
   Attendance,
   AttendanceSheet,
   AttendanceStats,
   AttendanceStatus,
+  BackupItem,
   DashboardStats,
+  MonthlyReport,
   Payment,
   PublicStudent,
+  SearchStudent,
   Student,
   StudentInput,
 } from "./types";
@@ -89,6 +95,10 @@ export const studentsApi = {
   update: (id: number, data: Partial<StudentInput>) =>
     api.put<Student>(normalizePath(`/api/students/${id}`), data),
   remove: (id: number) => api.delete(normalizePath(`/api/students/${id}`)),
+  search: (q: string) =>
+    api.get<SearchStudent[]>(normalizePath("/api/students/search"), { params: { q } }),
+  statement: (id: number) =>
+    api.get<AccountStatement>(normalizePath(`/api/students/${id}/statement`)),
 };
 
 export const paymentsApi = {
@@ -143,4 +153,30 @@ export const publicApi = {
 
 export const dashboardApi = {
   stats: () => api.get<DashboardStats>(normalizePath("/api/dashboard/stats")),
+};
+
+export const reportsApi = {
+  monthly: (year: number, month: number) =>
+    api.get<MonthlyReport>(normalizePath("/api/reports/monthly"), {
+      params: { year, month },
+    }),
+};
+
+export const adminsApi = {
+  list: () => api.get<Admin[]>(normalizePath("/api/admins")),
+  create: (data: AdminInput) => api.post<Admin>(normalizePath("/api/admins"), data),
+  update: (
+    id: number,
+    data: Partial<{ name: string; password: string; role: AdminRole; is_active: boolean }>,
+  ) => api.put<Admin>(normalizePath(`/api/admins/${id}`), data),
+  remove: (id: number) => api.delete(normalizePath(`/api/admins/${id}`)),
+};
+
+export const backupsApi = {
+  list: () => api.get<BackupItem[]>(normalizePath("/api/backups")),
+  create: () => api.post<BackupItem>(normalizePath("/api/backups")),
+  downloadUrl: (filename: string) =>
+    `${api.defaults.baseURL}${normalizePath(`/api/backups/${filename}/download`)}`,
+  remove: (filename: string) =>
+    api.delete(normalizePath(`/api/backups/${filename}`)),
 };

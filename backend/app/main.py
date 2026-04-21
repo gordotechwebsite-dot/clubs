@@ -9,12 +9,36 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.database import Base, SessionLocal, engine
 from app.models import Admin, Payment, Student
-from app.routers import attendance, auth, dashboard, payments, public, students
+from app.routers import (
+    admins,
+    attendance,
+    auth,
+    backups,
+    dashboard,
+    payments,
+    public,
+    reports,
+    students,
+)
+from app.routers.backups import ensure_daily_backup
 from app.routers.payments import (
     _due_date_for,
     ensure_current_month_payments,
 )
 from app.security import hash_password
+
+DEFAULT_ADMIN_SEEDS: list[dict[str, str]] = [
+    {
+        "email": "diego.sandoval@clubtitanes.com",
+        "name": "Diego Sandoval",
+        "password": "Titanes.Diego2026",
+    },
+    {
+        "email": "nestor.burgos@clubtitanes.com",
+        "name": "Nestor Burgos",
+        "password": "Titanes.Nestor2026",
+    },
+]
 
 logger = logging.getLogger("uvicorn")
 
@@ -24,6 +48,7 @@ def _migrate_schema() -> None:
     inspector = inspect(engine)
     student_cols = {col["name"] for col in inspector.get_columns("students")}
     payment_cols = {col["name"] for col in inspector.get_columns("payments")}
+    admin_cols = {col["name"] for col in inspector.get_columns("admins")}
     with engine.begin() as conn:
         if "public_token" not in student_cols:
             conn.execute(text("ALTER TABLE students ADD COLUMN public_token VARCHAR(64)"))
@@ -41,6 +66,14 @@ def _migrate_schema() -> None:
                     "ON payments(due_date)"
                 )
             )
+        if "role" not in admin_cols:
+            conn.execute(
+                text("ALTER TABLE admins ADD COLUMN role VARCHAR(32) DEFAULT 'director'")
+            )
+            conn.execute(text("UPDATE admins SET role = 'director' WHERE role IS NULL"))
+            conn.execute(
+                text("CREATE INDEX IF NOT EXISTS ix_admins_role ON admins(role)")
+            )
 
 
 def _init_db() -> None:
@@ -54,11 +87,28 @@ def _init_db() -> None:
                 email=settings.admin_email,
                 name=settings.admin_name,
                 password_hash=hash_password(settings.admin_password),
+                role="director",
                 is_active=True,
             )
             db.add(admin)
             db.commit()
             logger.info("Admin inicial creado: %s", settings.admin_email)
+
+        for seed in DEFAULT_ADMIN_SEEDS:
+            email = seed["email"].lower()
+            has = db.query(Admin).filter(Admin.email == email).first()
+            if has is None:
+                db.add(
+                    Admin(
+                        email=email,
+                        name=seed["name"],
+                        password_hash=hash_password(seed["password"]),
+                        role="director",
+                        is_active=True,
+                    )
+                )
+                db.commit()
+                logger.info("Usuario director creado: %s", email)
 
         pending = db.query(Student).filter(Student.public_token.is_(None)).all()
         if pending:
@@ -80,6 +130,11 @@ def _init_db() -> None:
     finally:
         db.close()
 
+    try:
+        ensure_daily_backup()
+    except Exception as exc:  # pragma: no cover
+        logger.warning("No se pudo crear el backup diario al iniciar: %s", exc)
+
 
 def create_app() -> FastAPI:
     app = FastAPI(title=f"{settings.club_name} API", version="1.0.0")
@@ -94,10 +149,13 @@ def create_app() -> FastAPI:
     )
 
     app.include_router(auth.router)
+    app.include_router(admins.router)
     app.include_router(students.router)
     app.include_router(payments.router)
     app.include_router(attendance.router)
     app.include_router(dashboard.router)
+    app.include_router(reports.router)
+    app.include_router(backups.router)
     app.include_router(public.router)
 
     @app.get("/api/health")
