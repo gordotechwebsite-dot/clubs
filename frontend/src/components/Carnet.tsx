@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { formatDateEs } from "../utils";
+import { formatDateEs, MONTH_NAMES_ES } from "../utils";
 
 export interface CarnetData {
   id: number;
@@ -81,6 +81,91 @@ function IconHash() {
   );
 }
 
+function SoccerBall({ size = 150 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 100 100" width={size} height={size}>
+      <defs>
+        <radialGradient id="sb-grad" cx="40%" cy="40%" r="65%">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="100%" stopColor="#d8dde3" />
+        </radialGradient>
+      </defs>
+      <circle cx="50" cy="50" r="46" fill="url(#sb-grad)" stroke="#1a1a1a" strokeWidth="1.5" />
+      <polygon
+        points="50,33 63,42 58,58 42,58 37,42"
+        fill="#0f1216"
+        stroke="#0f1216"
+        strokeWidth="1"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M50,33 L50,15 M63,42 L79,36 M58,58 L70,72 M42,58 L30,72 M37,42 L21,36"
+        stroke="#0f1216"
+        strokeWidth="2.2"
+        fill="none"
+        strokeLinecap="round"
+      />
+      <circle cx="50" cy="50" r="46" fill="none" stroke="#0f1216" strokeWidth="2" />
+    </svg>
+  );
+}
+
+function VolleyBall({ size = 150 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 100 100" width={size} height={size}>
+      <defs>
+        <radialGradient id="vb-grad" cx="40%" cy="40%" r="70%">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="100%" stopColor="#dfe5ec" />
+        </radialGradient>
+      </defs>
+      <circle cx="50" cy="50" r="46" fill="url(#vb-grad)" stroke={NAVY_DEEP} strokeWidth="1.5" />
+      <path d="M50,4 C35,25 35,55 50,96" stroke={NAVY_DEEP} strokeWidth="2" fill="none" />
+      <path d="M50,4 C65,25 65,55 50,96" stroke={NAVY_DEEP} strokeWidth="2" fill="none" />
+      <path d="M4,50 C25,35 75,35 96,50" stroke={NAVY_DEEP} strokeWidth="2" fill="none" />
+      <path d="M4,50 C25,65 75,65 96,50" stroke={NAVY_DEEP} strokeWidth="2" fill="none" />
+      <path d="M14,22 C40,40 60,40 86,22" stroke={NAVY_DEEP} strokeWidth="1.5" fill="none" />
+      <path d="M14,78 C40,60 60,60 86,78" stroke={NAVY_DEEP} strokeWidth="1.5" fill="none" />
+    </svg>
+  );
+}
+
+function WaterDrop({ size = 150 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 100 100" width={size} height={size}>
+      <defs>
+        <radialGradient id="wd-grad" cx="40%" cy="35%" r="70%">
+          <stop offset="0%" stopColor="#cfe7ff" />
+          <stop offset="70%" stopColor="#3b82c4" />
+          <stop offset="100%" stopColor="#0b3b6e" />
+        </radialGradient>
+      </defs>
+      <path
+        d="M50,6 C50,6 16,46 16,66 a34,34 0 0 0 68,0 C84,46 50,6 50,6 Z"
+        fill="url(#wd-grad)"
+        stroke={NAVY_DEEP}
+        strokeWidth="1.5"
+      />
+      <path
+        d="M30,62 a20,14 0 0 0 12,14"
+        stroke="#ffffff"
+        strokeOpacity="0.7"
+        strokeWidth="3"
+        fill="none"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function SportBall({ sport, size }: { sport: string | null; size?: number }) {
+  const s = (sport || "").toUpperCase();
+  if (s.includes("FÚTBOL") || s.includes("FUTBOL")) return <SoccerBall size={size} />;
+  if (s.includes("VOLEIBOL") || s.includes("VOLLEY")) return <VolleyBall size={size} />;
+  if (s.includes("NATACIÓN") || s.includes("NATACION")) return <WaterDrop size={size} />;
+  return null;
+}
+
 function InfoRow({
   icon,
   label,
@@ -147,8 +232,9 @@ export default function Carnet({ student, publicUrl }: Props) {
     .join("")
     .toUpperCase();
 
-  const joinYear = new Date(student.join_date).getFullYear();
-  const joinLabel = formatDateEs(student.join_date);
+  const joinDate = new Date(student.join_date);
+  const joinYear = joinDate.getFullYear();
+  const joinLabel = `${MONTH_NAMES_ES[joinDate.getMonth()] ?? ""} de ${joinYear}`;
 
   const rows: { icon: React.ReactNode; label: string; value: string }[] = [];
   rows.push({
@@ -214,25 +300,64 @@ export default function Carnet({ student, publicUrl }: Props) {
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(circle at 15% 25%, rgba(19,42,122,0.08), transparent 45%), radial-gradient(circle at 85% 75%, rgba(183,28,28,0.06), transparent 45%)",
+            "linear-gradient(180deg, #f4f7fc 0%, #e6edf8 55%, #dbe5f4 100%)",
         }}
       />
       <svg
-        className="absolute inset-0 w-full h-full pointer-events-none opacity-50"
+        className="absolute inset-0 w-full h-full pointer-events-none"
         viewBox="0 0 340 540"
         preserveAspectRatio="none"
+        aria-hidden="true"
       >
         <path
-          d="M0,460 C80,440 160,500 340,470 L340,540 L0,540 Z"
-          fill="#eaf0fb"
+          d="M-20,120 C90,70 210,180 360,110 L360,220 C230,280 110,180 -20,240 Z"
+          fill="#cedbf0"
+          opacity="0.55"
         />
         <path
-          d="M0,420 C110,400 190,470 340,430"
-          stroke="#d4deee"
-          strokeWidth="2"
+          d="M-20,180 C100,130 220,240 360,170"
+          stroke="#a8bde0"
+          strokeWidth="1.2"
+          fill="none"
+          opacity="0.8"
+        />
+        <path
+          d="M-20,250 C90,210 230,320 360,260"
+          stroke="#c0d0ea"
+          strokeWidth="1"
+          fill="none"
+        />
+        <path
+          d="M-20,320 C110,270 230,380 360,310"
+          stroke="#d3dfee"
+          strokeWidth="1"
+          fill="none"
+        />
+        <path
+          d="M-20,390 C100,350 230,460 360,380"
+          stroke="#c8d6ea"
+          strokeWidth="1"
+          fill="none"
+          opacity="0.8"
+        />
+        <path
+          d="M-20,450 C120,410 220,510 360,440 L360,540 L-20,540 Z"
+          fill="#d9e3f3"
+          opacity="0.6"
+        />
+        <path
+          d="M-20,480 C110,440 240,540 360,470"
+          stroke="#b7c9e6"
+          strokeWidth="1.2"
           fill="none"
         />
       </svg>
+
+      {student.sport ? (
+        <div className="absolute right-[-18px] bottom-[48px] pointer-events-none select-none drop-shadow-lg">
+          <SportBall sport={student.sport} size={150} />
+        </div>
+      ) : null}
 
       <div
         className="absolute top-0 left-0 right-0 h-9"
