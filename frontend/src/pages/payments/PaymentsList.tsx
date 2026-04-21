@@ -5,6 +5,7 @@ import type { Payment, Student } from "../../types";
 import { CATEGORIES, currentPeriod, formatCOP, formatDateEs, MONTH_NAMES_ES, SPORTS } from "../../utils";
 import PageHeader from "../../components/PageHeader";
 import PaymentBadge from "../../components/PaymentBadge";
+import { downloadInvoice } from "../../invoice";
 
 export default function PaymentsList() {
   const { year: nowYear, month: nowMonth } = currentPeriod();
@@ -73,6 +74,12 @@ export default function PaymentsList() {
   async function onMarkUnpaid(p: Payment) {
     await paymentsApi.markUnpaid(p.id);
     load();
+  }
+
+  async function onDownloadPdf(p: Payment) {
+    const s = students[p.student_id];
+    if (!s) return;
+    await downloadInvoice(s, [p]);
   }
 
   const totals = useMemo(() => {
@@ -262,21 +269,39 @@ export default function PaymentsList() {
                     {formatDateEs(p.paid_at)}
                   </td>
                   <td className="px-4 py-3 text-right whitespace-nowrap">
-                    {p.status !== "paid" ? (
-                      <button
-                        className="btn-link text-emerald-700 hover:text-emerald-900"
-                        onClick={() => onMarkPaid(p)}
-                      >
-                        Marcar pagado
-                      </button>
-                    ) : (
-                      <button
-                        className="btn-link text-amber-700 hover:text-amber-900"
-                        onClick={() => onMarkUnpaid(p)}
-                      >
-                        Revertir
-                      </button>
-                    )}
+                    <div className="flex flex-col items-end gap-1">
+                      {s && (
+                        <Link
+                          to={`/estudiantes/${s.id}/factura?year=${p.period_year}&month=${p.period_month}`}
+                          className="btn-link text-titanes-navy hover:text-slate-900"
+                        >
+                          Ver factura
+                        </Link>
+                      )}
+                      {s && (
+                        <button
+                          className="btn-link text-slate-600 hover:text-slate-900"
+                          onClick={() => onDownloadPdf(p)}
+                        >
+                          Descargar PDF
+                        </button>
+                      )}
+                      {p.status !== "paid" ? (
+                        <button
+                          className="btn-link text-emerald-700 hover:text-emerald-900"
+                          onClick={() => onMarkPaid(p)}
+                        >
+                          Marcar pagado
+                        </button>
+                      ) : (
+                        <button
+                          className="btn-link text-amber-700 hover:text-amber-900"
+                          onClick={() => onMarkUnpaid(p)}
+                        >
+                          Revertir
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               );
