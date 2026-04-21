@@ -76,9 +76,25 @@ def _migrate_schema() -> None:
             )
 
 
+def _integrity_check() -> None:
+    """Verifica la integridad del SQLite al arrancar. Loguea alerta si falla."""
+    try:
+        with engine.connect() as conn:
+            result = conn.execute(text("PRAGMA integrity_check")).scalar()
+        if result != "ok":
+            logger.error(
+                "ALERTA: integrity_check de la base reporta: %s", result
+            )
+        else:
+            logger.info("integrity_check de la base: ok")
+    except Exception as exc:  # pragma: no cover
+        logger.error("No se pudo ejecutar integrity_check: %s", exc)
+
+
 def _init_db() -> None:
     Base.metadata.create_all(bind=engine)
     _migrate_schema()
+    _integrity_check()
     db: Session = SessionLocal()
     try:
         existing = db.query(Admin).first()

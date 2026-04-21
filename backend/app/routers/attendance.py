@@ -213,15 +213,16 @@ def update_attendance(
     return a
 
 
-@router.delete("/{attendance_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{attendance_id}")
 def delete_attendance(
     attendance_id: int,
     db: Session = Depends(get_db),
     _: Admin = Depends(get_current_admin),
 ):
-    a = db.get(Attendance, attendance_id)
-    if not a:
-        raise HTTPException(status_code=404, detail="Registro no encontrado")
-    db.delete(a)
-    db.commit()
-    return None
+    # Blindaje: los registros de asistencia no se eliminan.
+    # Si hay un error en una marca, se corrige reescribiendo ese día.
+    del db, attendance_id
+    raise HTTPException(
+        status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
+        detail="La eliminación de asistencia está deshabilitada. Corrige la marca del día en la planilla.",
+    )

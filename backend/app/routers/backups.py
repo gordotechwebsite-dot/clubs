@@ -17,7 +17,7 @@ logger = logging.getLogger("uvicorn")
 
 router = APIRouter(prefix="/api/backups", tags=["backups"])
 
-RETENTION_DAYS = 30
+RETENTION_DAYS = 90
 
 
 def _db_path() -> Path | None:
