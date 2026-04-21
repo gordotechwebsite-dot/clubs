@@ -126,47 +126,49 @@ export default function AttendanceSheet() {
         }
       />
 
-      <div className="card p-4 flex items-end gap-4 flex-wrap mb-6">
-        <div>
-          <label className="label">Fecha de sesión</label>
-          <input
-            type="date"
-            className="input w-48"
-            value={sessionDate}
-            onChange={(e) => setSessionDate(e.target.value)}
-          />
+      <div className="card p-3 md:p-4 mb-4 md:mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
+          <div className="min-w-0">
+            <label className="label">Fecha de sesión</label>
+            <input
+              type="date"
+              className="input"
+              value={sessionDate}
+              onChange={(e) => setSessionDate(e.target.value)}
+            />
+          </div>
+          <div className="min-w-0">
+            <label className="label">Deporte</label>
+            <select
+              className="input"
+              value={sport}
+              onChange={(e) => setSport(e.target.value)}
+            >
+              <option value="">Todos</option>
+              {SPORTS.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="min-w-0">
+            <label className="label">Categoría</label>
+            <select
+              className="input"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+            >
+              <option value="">Todas</option>
+              {CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-        <div>
-          <label className="label">Deporte</label>
-          <select
-            className="input w-48"
-            value={sport}
-            onChange={(e) => setSport(e.target.value)}
-          >
-            <option value="">Todos</option>
-            {SPORTS.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="label">Categoría</label>
-          <select
-            className="input w-48"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-          >
-            <option value="">Todas</option>
-            {CATEGORIES.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="ml-auto flex items-end gap-2 flex-wrap">
+        <div className="mt-3 flex items-center gap-2 flex-wrap">
           <button className="btn-ghost" onClick={() => markAll("present")}>
             Todos presentes
           </button>
@@ -205,8 +207,8 @@ export default function AttendanceSheet() {
         </div>
       </div>
 
-      <div className="card">
-        <table className="w-full">
+      <div className="card overflow-x-auto">
+        <table className="w-full min-w-[780px]">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50">
               <th className="text-left px-6 py-3 text-[11px] font-semibold uppercase tracking-widest text-slate-500 w-10">

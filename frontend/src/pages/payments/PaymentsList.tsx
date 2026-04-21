@@ -103,20 +103,20 @@ export default function PaymentsList() {
         }
       />
 
-      <div className="card p-4 flex items-end gap-4 flex-wrap mb-6">
-        <div>
+      <div className="card p-3 md:p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 mb-4 md:mb-6">
+        <div className="min-w-0">
           <label className="label">Año</label>
           <input
             type="number"
-            className="input w-28"
+            className="input"
             value={year}
             onChange={(e) => setYear(Number(e.target.value))}
           />
         </div>
-        <div>
+        <div className="min-w-0">
           <label className="label">Mes</label>
           <select
-            className="input w-48"
+            className="input"
             value={month}
             onChange={(e) => setMonth(Number(e.target.value))}
           >
@@ -127,10 +127,10 @@ export default function PaymentsList() {
             ))}
           </select>
         </div>
-        <div>
+        <div className="min-w-0">
           <label className="label">Deporte</label>
           <select
-            className="input w-44"
+            className="input"
             value={sport}
             onChange={(e) => setSport(e.target.value)}
           >
@@ -142,10 +142,10 @@ export default function PaymentsList() {
             ))}
           </select>
         </div>
-        <div>
+        <div className="min-w-0">
           <label className="label">Categoría</label>
           <select
-            className="input w-44"
+            className="input"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
           >
@@ -157,10 +157,10 @@ export default function PaymentsList() {
             ))}
           </select>
         </div>
-        <div>
+        <div className="min-w-0 col-span-2 sm:col-span-1">
           <label className="label">Estado</label>
           <select
-            className="input w-44"
+            className="input"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
@@ -198,8 +198,8 @@ export default function PaymentsList() {
         </div>
       </div>
 
-      <div className="card overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="card overflow-x-auto">
+        <table className="w-full min-w-[900px] text-sm">
           <thead className="bg-slate-900 text-white text-[10px] uppercase tracking-widest">
             <tr>
               <th className="text-left px-4 py-3">Deportista</th>

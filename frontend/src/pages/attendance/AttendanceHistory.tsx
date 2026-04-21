@@ -97,29 +97,29 @@ export default function AttendanceHistory() {
         }
       />
 
-      <div className="card p-4 flex items-end gap-4 flex-wrap mb-6">
-        <div>
+      <div className="card p-3 md:p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 mb-4 md:mb-6">
+        <div className="min-w-0">
           <label className="label">Desde</label>
           <input
             type="date"
-            className="input w-48"
+            className="input"
             value={dateFrom}
             onChange={(e) => setDateFrom(e.target.value)}
           />
         </div>
-        <div>
+        <div className="min-w-0">
           <label className="label">Hasta</label>
           <input
             type="date"
-            className="input w-48"
+            className="input"
             value={dateTo}
             onChange={(e) => setDateTo(e.target.value)}
           />
         </div>
-        <div>
+        <div className="min-w-0">
           <label className="label">Deporte</label>
           <select
-            className="input w-44"
+            className="input"
             value={sportFilter}
             onChange={(e) => setSportFilter(e.target.value)}
           >
@@ -131,10 +131,10 @@ export default function AttendanceHistory() {
             ))}
           </select>
         </div>
-        <div>
+        <div className="min-w-0">
           <label className="label">Categoría</label>
           <select
-            className="input w-44"
+            className="input"
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
           >
@@ -146,10 +146,10 @@ export default function AttendanceHistory() {
             ))}
           </select>
         </div>
-        <div>
+        <div className="min-w-0 col-span-2 sm:col-span-1">
           <label className="label">Deportista</label>
           <select
-            className="input w-64"
+            className="input"
             value={studentFilter}
             onChange={(e) => setStudentFilter(e.target.value)}
           >
@@ -186,8 +186,8 @@ export default function AttendanceHistory() {
         </div>
       </div>
 
-      <div className="card">
-        <table className="w-full">
+      <div className="card overflow-x-auto">
+        <table className="w-full min-w-[780px]">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50">
               <th className="text-left px-6 py-3 text-[11px] font-semibold uppercase tracking-widest text-slate-500">

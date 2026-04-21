@@ -68,7 +68,7 @@ body {
     @apply font-display uppercase tracking-wide;
   }
   .h-page {
-    @apply display text-3xl md:text-4xl text-slate-900 leading-none;
+    @apply display text-2xl sm:text-3xl md:text-4xl text-slate-900 leading-none;
   }
   .h-section {
     @apply display text-xl text-slate-900;
@@ -99,5 +99,12 @@ body {
   }
   .no-print {
     display: none !important;
+  }
+  .carnet-fit-wrap {
+    height: auto !important;
+    max-width: none !important;
+  }
+  .carnet-fit {
+    transform: none !important;
   }
 }

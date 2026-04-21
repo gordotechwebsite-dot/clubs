@@ -65,10 +65,10 @@ export default function StudentsList() {
       />
 
       <form
-        className="card p-4 flex items-end gap-4 flex-wrap mb-6"
+        className="card p-3 md:p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 mb-4 md:mb-6"
         onSubmit={onSearchSubmit}
       >
-        <div className="flex-1 min-w-[220px]">
+        <div className="sm:col-span-2 lg:col-span-2 min-w-0">
           <label className="label">Buscar</label>
           <input
             className="input"
@@ -77,10 +77,10 @@ export default function StudentsList() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <div>
+        <div className="min-w-0">
           <label className="label">Deporte</label>
           <select
-            className="input w-48"
+            className="input"
             value={sport}
             onChange={(e) => setSport(e.target.value)}
           >
@@ -92,10 +92,10 @@ export default function StudentsList() {
             ))}
           </select>
         </div>
-        <div>
+        <div className="min-w-0">
           <label className="label">Categoría</label>
           <select
-            className="input w-44"
+            className="input"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
           >
@@ -107,22 +107,24 @@ export default function StudentsList() {
             ))}
           </select>
         </div>
-        <label className="flex items-center gap-2 text-sm text-slate-700 pb-2">
-          <input
-            type="checkbox"
-            className="h-4 w-4 accent-titanes-navy"
-            checked={activeOnly}
-            onChange={(e) => setActiveOnly(e.target.checked)}
-          />
-          Solo activos
-        </label>
-        <button type="submit" className="btn-ghost">
-          Buscar
-        </button>
+        <div className="flex items-end gap-3 flex-wrap">
+          <label className="flex items-center gap-2 text-sm text-slate-700 pb-2">
+            <input
+              type="checkbox"
+              className="h-4 w-4 accent-titanes-navy"
+              checked={activeOnly}
+              onChange={(e) => setActiveOnly(e.target.checked)}
+            />
+            Solo activos
+          </label>
+          <button type="submit" className="btn-ghost">
+            Buscar
+          </button>
+        </div>
       </form>
 
-      <div className="card overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="card overflow-x-auto">
+        <table className="w-full min-w-[860px] text-sm">
           <thead className="bg-slate-900 text-white text-[10px] uppercase tracking-widest">
             <tr>
               <th className="text-left px-4 py-3 w-16">N°</th>
