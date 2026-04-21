@@ -216,15 +216,16 @@ def update_student(
     return _summarize(db, student)
 
 
-@router.delete("/{student_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{student_id}")
 def delete_student(
     student_id: int,
     db: Session = Depends(get_db),
     _: Admin = Depends(get_current_admin),
 ):
-    student = db.get(Student, student_id)
-    if not student:
-        raise HTTPException(status_code=404, detail="Estudiante no encontrado")
-    db.delete(student)
-    db.commit()
-    return None
+    # Blindaje: los deportistas no se eliminan. Solo se archivan (is_active=false)
+    # mediante PUT /api/students/{id}. Esta ruta queda como salvaguarda.
+    del db, student_id
+    raise HTTPException(
+        status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
+        detail="La eliminación está deshabilitada. Archiva al deportista para conservar su historial.",
+    )

@@ -47,7 +47,18 @@ export default function BackupsPage() {
   }
 
   async function onDelete(name: string) {
-    if (!confirm(`¿Eliminar el respaldo ${name}? Esta acción no se puede deshacer.`)) return;
+    const entrada = prompt(
+      `Vas a eliminar el respaldo ${name}. Esta acción es permanente.\n\n` +
+        `Para confirmar, escribe exactamente la palabra ELIMINAR (en mayúsculas).`,
+    );
+    if (entrada === null) return;
+    if (entrada.trim() !== "ELIMINAR") {
+      setError(
+        "Confirmación incorrecta. El respaldo NO se eliminó. " +
+          "Debes escribir exactamente la palabra ELIMINAR para confirmar.",
+      );
+      return;
+    }
     try {
       await backupsApi.remove(name);
       await load();
@@ -82,7 +93,7 @@ export default function BackupsPage() {
       <PageHeader
         eyebrow="Administración"
         title="Copias de seguridad"
-        subtitle="Respaldos automáticos diarios de la base de datos. Retención de 30 días."
+        subtitle="Respaldos automáticos diarios de la base de datos. Retención de 90 días."
         actions={
           <button className="btn-primary" onClick={onCreate} disabled={creating}>
             {creating ? "Generando..." : "Crear respaldo ahora"}

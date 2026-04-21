@@ -241,18 +241,18 @@ def mark_unpaid(
     return payment
 
 
-@router.delete("/{payment_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{payment_id}")
 def delete_payment(
     payment_id: int,
     db: Session = Depends(get_db),
     _: Admin = Depends(get_current_admin),
 ):
-    payment = db.get(Payment, payment_id)
-    if not payment:
-        raise HTTPException(status_code=404, detail="Pago no encontrado")
-    db.delete(payment)
-    db.commit()
-    return None
+    # Blindaje: los pagos no se eliminan. Se usan marcar-pagado y revertir.
+    del db, payment_id
+    raise HTTPException(
+        status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
+        detail="La eliminación de pagos está deshabilitada. Usa revertir para deshacer un pago.",
+    )
 
 
 @router.post("/generate-month", response_model=list[PaymentOut])
