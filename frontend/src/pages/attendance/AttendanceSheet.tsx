@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { attendanceApi, studentsApi } from "../../api";
-import type { AttendanceSheetEntry, AttendanceStatus, Student } from "../../types";
+import { attendanceApi } from "../../api";
+import type { AttendanceSheetEntry, AttendanceStatus } from "../../types";
 import PageHeader from "../../components/PageHeader";
-import { formatDateEs } from "../../utils";
+import { CATEGORIES, formatDateEs, SPORTS } from "../../utils";
 
 const STATUS_OPTIONS: { value: AttendanceStatus; label: string; btnClass: string }[] = [
   {
@@ -39,20 +39,6 @@ export default function AttendanceSheet() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
-  const [sports, setSports] = useState<string[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
-
-  async function loadFilters() {
-    const { data } = await studentsApi.list({ active_only: true });
-    const sp = new Set<string>();
-    const cat = new Set<string>();
-    data.forEach((s: Student) => {
-      if (s.sport) sp.add(s.sport);
-      if (s.category) cat.add(s.category);
-    });
-    setSports([...sp].sort());
-    setCategories([...cat].sort());
-  }
 
   async function load() {
     setLoading(true);
@@ -69,11 +55,6 @@ export default function AttendanceSheet() {
       setLoading(false);
     }
   }
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadFilters();
-  }, []);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -163,7 +144,7 @@ export default function AttendanceSheet() {
             onChange={(e) => setSport(e.target.value)}
           >
             <option value="">Todos</option>
-            {sports.map((s) => (
+            {SPORTS.map((s) => (
               <option key={s} value={s}>
                 {s}
               </option>
@@ -178,7 +159,7 @@ export default function AttendanceSheet() {
             onChange={(e) => setCategory(e.target.value)}
           >
             <option value="">Todas</option>
-            {categories.map((c) => (
+            {CATEGORIES.map((c) => (
               <option key={c} value={c}>
                 {c}
               </option>

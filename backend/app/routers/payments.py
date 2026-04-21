@@ -39,10 +39,18 @@ def list_payments(
     year: int | None = None,
     month: int | None = None,
     status_filter: str | None = None,
+    sport: str | None = None,
+    category: str | None = None,
     db: Session = Depends(get_db),
     _: Admin = Depends(get_current_admin),
 ):
     q = db.query(Payment)
+    if sport or category:
+        q = q.join(Student, Payment.student_id == Student.id)
+        if sport:
+            q = q.filter(Student.sport == sport)
+        if category:
+            q = q.filter(Student.category == category)
     if student_id is not None:
         q = q.filter(Payment.student_id == student_id)
     if year is not None:

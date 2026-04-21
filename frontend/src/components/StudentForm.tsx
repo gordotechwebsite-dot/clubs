@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { studentsApi } from "../api";
 import type { Student, StudentInput } from "../types";
-import { fileToDataUrl } from "../utils";
+import { CATEGORIES, fileToDataUrl, SPORTS } from "../utils";
 import StudentPhoto from "./StudentPhoto";
 
 interface Props {
@@ -23,7 +23,7 @@ export default function StudentForm({ student, submitLabel, backTo, onSaved }: P
     guardian_name: student?.guardian_name || "",
     guardian_phone: student?.guardian_phone || "",
     category: student?.category || "",
-    sport: student?.sport || "Volleyball",
+    sport: student?.sport || SPORTS[0],
     photo_url: student?.photo_url || "",
     monthly_fee: student?.monthly_fee ?? 50000,
     is_active: student?.is_active ?? true,
@@ -168,21 +168,34 @@ export default function StudentForm({ student, submitLabel, backTo, onSaved }: P
           </div>
           <div>
             <label className="label">Deporte</label>
-            <input
+            <select
               className="input"
               value={form.sport || ""}
               onChange={(e) => set("sport", e.target.value)}
-              placeholder="Volleyball, Fútbol"
-            />
+              required
+            >
+              {SPORTS.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
-            <label className="label">Categoría o grupo</label>
-            <input
+            <label className="label">Categoría</label>
+            <select
               className="input"
               value={form.category || ""}
               onChange={(e) => set("category", e.target.value)}
-              placeholder="Sub 15, Elite"
-            />
+              required
+            >
+              <option value="">Seleccionar</option>
+              {CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
       </section>

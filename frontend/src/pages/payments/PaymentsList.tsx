@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { paymentsApi, studentsApi } from "../../api";
 import type { Payment, Student } from "../../types";
-import { currentPeriod, formatCOP, formatDateEs, MONTH_NAMES_ES } from "../../utils";
+import { CATEGORIES, currentPeriod, formatCOP, formatDateEs, MONTH_NAMES_ES, SPORTS } from "../../utils";
 import PageHeader from "../../components/PageHeader";
 import PaymentBadge from "../../components/PaymentBadge";
 
@@ -11,6 +11,8 @@ export default function PaymentsList() {
   const [year, setYear] = useState<number>(nowYear);
   const [month, setMonth] = useState<number>(nowMonth);
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [sport, setSport] = useState<string>("");
+  const [category, setCategory] = useState<string>("");
   const [payments, setPayments] = useState<Payment[]>([]);
   const [students, setStudents] = useState<Record<number, Student>>({});
   const [loading, setLoading] = useState(true);
@@ -21,7 +23,13 @@ export default function PaymentsList() {
     setLoading(true);
     try {
       const [p, s] = await Promise.all([
-        paymentsApi.list({ year, month, status_filter: statusFilter || undefined }),
+        paymentsApi.list({
+          year,
+          month,
+          status_filter: statusFilter || undefined,
+          sport: sport || undefined,
+          category: category || undefined,
+        }),
         studentsApi.list(),
       ]);
       setPayments(p.data);
@@ -39,7 +47,7 @@ export default function PaymentsList() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [year, month, statusFilter]);
+  }, [year, month, statusFilter, sport, category]);
 
   async function onGenerate() {
     setGenerating(true);
@@ -113,9 +121,39 @@ export default function PaymentsList() {
           </select>
         </div>
         <div>
+          <label className="label">Deporte</label>
+          <select
+            className="input w-44"
+            value={sport}
+            onChange={(e) => setSport(e.target.value)}
+          >
+            <option value="">Todos</option>
+            {SPORTS.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="label">Categoría</label>
+          <select
+            className="input w-44"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+          >
+            <option value="">Todas</option>
+            {CATEGORIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
           <label className="label">Estado</label>
           <select
-            className="input w-48"
+            className="input w-44"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
