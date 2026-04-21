@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { paymentsApi, studentsApi } from "../../api";
-import type { Payment, Student } from "../../types";
+import { attendanceApi, paymentsApi, studentsApi } from "../../api";
+import type { Attendance, AttendanceStats, Payment, Student } from "../../types";
+import AttendanceBadge from "../../components/AttendanceBadge";
 import { currentPeriod, formatCOP, formatDateEs, MONTH_NAMES_ES } from "../../utils";
 import PageHeader from "../../components/PageHeader";
 import PaymentBadge from "../../components/PaymentBadge";
@@ -24,18 +25,24 @@ export default function StudentDetail() {
   const studentId = Number(id);
   const [student, setStudent] = useState<Student | null>(null);
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [attendance, setAttendance] = useState<Attendance[]>([]);
+  const [attendanceStats, setAttendanceStats] = useState<AttendanceStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [s, p] = await Promise.all([
+      const [s, p, a, st] = await Promise.all([
         studentsApi.get(studentId),
         paymentsApi.list({ student_id: studentId }),
+        attendanceApi.list({ student_id: studentId }),
+        attendanceApi.stats(studentId),
       ]);
       setStudent(s.data);
       setPayments(p.data);
+      setAttendance(a.data);
+      setAttendanceStats(st.data);
     } finally {
       setLoading(false);
     }
@@ -92,7 +99,7 @@ export default function StudentDetail() {
     if (!student) return;
     if (
       !confirm(
-        `Eliminar a ${student.full_name} del roster? Esta acción no se puede deshacer.`
+        `Eliminar a ${student.full_name} de la plantilla? Esta acción no se puede deshacer.`
       )
     )
       return;
@@ -107,13 +114,13 @@ export default function StudentDetail() {
   return (
     <div>
       <PageHeader
-        eyebrow={`Roster / Ficha número ${student.id.toString().padStart(4, "0")}`}
+        eyebrow={`Plantilla / Ficha número ${student.id.toString().padStart(4, "0")}`}
         title={student.full_name}
         subtitle={[student.sport, student.category].filter(Boolean).join(" / ") || "Deportista del club"}
         actions={
           <>
             <Link to="/estudiantes" className="btn-ghost">
-              Volver al roster
+              Volver a la plantilla
             </Link>
             <Link to={`/estudiantes/${student.id}/editar`} className="btn-ghost">
               Editar datos
@@ -204,6 +211,81 @@ export default function StudentDetail() {
             </div>
           )}
         </div>
+      </div>
+
+      {attendanceStats && (
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+          <div className="card p-4 border-l-4 border-titanes-navy">
+            <div className="stat-label">Índice asistencia</div>
+            <div className="stat-num mt-1">
+              {attendanceStats.attendance_rate.toFixed(1)}%
+            </div>
+            <div className="text-[10px] uppercase tracking-widest text-slate-500 mt-1">
+              {attendanceStats.total_sessions} sesiones
+            </div>
+          </div>
+          <div className="card p-4">
+            <div className="stat-label">Presentes</div>
+            <div className="stat-num mt-1 text-emerald-700">
+              {attendanceStats.present}
+            </div>
+          </div>
+          <div className="card p-4">
+            <div className="stat-label">Tarde</div>
+            <div className="stat-num mt-1 text-amber-600">
+              {attendanceStats.late}
+            </div>
+          </div>
+          <div className="card p-4">
+            <div className="stat-label">Excusas</div>
+            <div className="stat-num mt-1 text-sky-700">
+              {attendanceStats.excused}
+            </div>
+          </div>
+          <div className="card p-4">
+            <div className="stat-label">Ausencias</div>
+            <div className="stat-num mt-1 text-rose-700">
+              {attendanceStats.absent}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between flex-wrap gap-3 mb-3">
+        <h2 className="h-section">Historial de asistencia</h2>
+        <Link to="/asistencia" className="btn-ghost">
+          Tomar asistencia
+        </Link>
+      </div>
+      <div className="card overflow-hidden mb-8">
+        <table className="w-full text-sm">
+          <thead className="bg-slate-900 text-white text-[10px] uppercase tracking-widest">
+            <tr>
+              <th className="text-left px-4 py-3">Fecha</th>
+              <th className="text-left px-4 py-3">Estado</th>
+              <th className="text-left px-4 py-3">Observaciones</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-200">
+            {attendance.length === 0 ? (
+              <tr>
+                <td colSpan={3} className="text-center py-8 text-slate-400">
+                  Aún no hay registros de asistencia para este deportista.
+                </td>
+              </tr>
+            ) : (
+              attendance.slice(0, 20).map((a) => (
+                <tr key={a.id} className="hover:bg-slate-50">
+                  <td className="px-4 py-3">{formatDateEs(a.session_date)}</td>
+                  <td className="px-4 py-3">
+                    <AttendanceBadge status={a.status} />
+                  </td>
+                  <td className="px-4 py-3 text-slate-600">{a.notes || "—"}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
 
       <div className="flex items-center justify-between flex-wrap gap-3 mb-3">

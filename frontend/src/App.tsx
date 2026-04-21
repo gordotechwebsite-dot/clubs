@@ -11,6 +11,8 @@ import StudentEdit from "./pages/students/StudentEdit";
 import StudentCarnet from "./pages/students/StudentCarnet";
 import StudentInvoice from "./pages/students/StudentInvoice";
 import PaymentsList from "./pages/payments/PaymentsList";
+import AttendanceSheet from "./pages/attendance/AttendanceSheet";
+import AttendanceHistory from "./pages/attendance/AttendanceHistory";
 
 export default function App() {
   return (
@@ -32,6 +34,8 @@ export default function App() {
           <Route path="/estudiantes/:id/carnet" element={<StudentCarnet />} />
           <Route path="/estudiantes/:id/factura" element={<StudentInvoice />} />
           <Route path="/pagos" element={<PaymentsList />} />
+          <Route path="/asistencia" element={<AttendanceSheet />} />
+          <Route path="/asistencia/historial" element={<AttendanceHistory />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

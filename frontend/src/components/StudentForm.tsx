@@ -211,7 +211,7 @@ export default function StudentForm({ student, submitLabel, backTo, onSaved }: P
                 checked={!!form.is_active}
                 onChange={(e) => set("is_active", e.target.checked)}
               />
-              Estudiante activo en el roster
+              Estudiante activo en la plantilla
             </label>
           </div>
           <div className="md:col-span-2">

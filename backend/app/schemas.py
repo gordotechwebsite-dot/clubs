@@ -118,6 +118,65 @@ class MarkPaidRequest(BaseModel):
     notes: str | None = None
 
 
+# --- Attendance ---
+class AttendanceBase(BaseModel):
+    student_id: int
+    session_date: date
+    status: str = "present"
+    notes: str | None = None
+
+
+class AttendanceCreate(AttendanceBase):
+    pass
+
+
+class AttendanceUpdate(BaseModel):
+    status: str | None = None
+    notes: str | None = None
+
+
+class AttendanceOut(AttendanceBase):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+
+class AttendanceSheetEntry(BaseModel):
+    student_id: int
+    student_name: str
+    sport: str | None = None
+    category: str | None = None
+    attendance_id: int | None = None
+    status: str | None = None
+    notes: str | None = None
+
+
+class AttendanceSheetOut(BaseModel):
+    session_date: date
+    entries: list[AttendanceSheetEntry]
+
+
+class AttendanceBulkItem(BaseModel):
+    student_id: int
+    status: str
+    notes: str | None = None
+
+
+class AttendanceBulkRequest(BaseModel):
+    session_date: date
+    entries: list[AttendanceBulkItem]
+
+
+class AttendanceStats(BaseModel):
+    total_sessions: int
+    present: int
+    absent: int
+    late: int
+    excused: int
+    attendance_rate: float
+
+
 # --- Dashboard ---
 class DashboardStats(BaseModel):
     total_students: int

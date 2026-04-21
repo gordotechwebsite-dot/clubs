@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.database import Base, SessionLocal, engine
 from app.models import Admin
-from app.routers import auth, dashboard, payments, students
+from app.routers import attendance, auth, dashboard, payments, students
 from app.security import hash_password
 
 logger = logging.getLogger("uvicorn")
@@ -47,6 +47,7 @@ def create_app() -> FastAPI:
     app.include_router(auth.router)
     app.include_router(students.router)
     app.include_router(payments.router)
+    app.include_router(attendance.router)
     app.include_router(dashboard.router)
 
     @app.get("/api/health")

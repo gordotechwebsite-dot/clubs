@@ -34,10 +34,13 @@ export default function Layout() {
               Inicio
             </NavLink>
             <NavLink to="/estudiantes" className={navLinkClass}>
-              Roster
+              Plantilla
             </NavLink>
             <NavLink to="/pagos" className={navLinkClass}>
               Pagos
+            </NavLink>
+            <NavLink to="/asistencia" className={navLinkClass}>
+              Asistencia
             </NavLink>
           </nav>
           <div className="flex items-center gap-4 text-sm">
@@ -68,10 +71,13 @@ export default function Layout() {
             Inicio
           </NavLink>
           <NavLink to="/estudiantes" className={navLinkClass}>
-            Roster
+            Plantilla
           </NavLink>
           <NavLink to="/pagos" className={navLinkClass}>
             Pagos
+          </NavLink>
+          <NavLink to="/asistencia" className={navLinkClass}>
+            Asistencia
           </NavLink>
         </div>
       </nav>

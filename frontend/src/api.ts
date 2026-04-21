@@ -1,5 +1,15 @@
 import axios, { AxiosError } from "axios";
-import type { Admin, DashboardStats, Payment, Student, StudentInput } from "./types";
+import type {
+  Admin,
+  Attendance,
+  AttendanceSheet,
+  AttendanceStats,
+  AttendanceStatus,
+  DashboardStats,
+  Payment,
+  Student,
+  StudentInput,
+} from "./types";
 
 const baseURL = import.meta.env.VITE_API_URL || "/api";
 
@@ -91,6 +101,28 @@ export const paymentsApi = {
   remove: (id: number) => api.delete(normalizePath(`/api/payments/${id}`)),
   generateMonth: (year: number, month: number) =>
     api.post<Payment[]>(normalizePath("/api/payments/generate-month"), null, { params: { year, month } }),
+};
+
+export const attendanceApi = {
+  list: (params?: {
+    student_id?: number;
+    session_date?: string;
+    date_from?: string;
+    date_to?: string;
+  }) => api.get<Attendance[]>(normalizePath("/api/attendance"), { params }),
+  sheet: (params: {
+    session_date: string;
+    sport?: string;
+    category?: string;
+    only_active?: boolean;
+  }) => api.get<AttendanceSheet>(normalizePath("/api/attendance/sheet"), { params }),
+  stats: (studentId: number) =>
+    api.get<AttendanceStats>(normalizePath(`/api/attendance/stats/${studentId}`)),
+  bulk: (session_date: string, entries: { student_id: number; status: AttendanceStatus; notes?: string | null }[]) =>
+    api.post<Attendance[]>(normalizePath("/api/attendance/bulk"), { session_date, entries }),
+  update: (id: number, data: { status?: AttendanceStatus; notes?: string | null }) =>
+    api.put<Attendance>(normalizePath(`/api/attendance/${id}`), data),
+  remove: (id: number) => api.delete(normalizePath(`/api/attendance/${id}`)),
 };
 
 export const dashboardApi = {

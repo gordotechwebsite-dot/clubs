@@ -8,10 +8,10 @@ export default function StudentNew() {
       <PageHeader
         eyebrow="Nueva inscripción"
         title="Registrar estudiante"
-        subtitle="Completa los datos personales y deportivos para sumar al deportista al roster oficial del club."
+        subtitle="Completa los datos personales y deportivos para sumar al deportista a la plantilla oficial del club."
         actions={
           <Link to="/estudiantes" className="btn-ghost">
-            Volver al roster
+            Volver a la plantilla
           </Link>
         }
       />
