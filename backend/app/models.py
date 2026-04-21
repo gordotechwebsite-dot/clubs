@@ -1,5 +1,5 @@
 from datetime import datetime, date
-from sqlalchemy import String, Integer, Date, DateTime, ForeignKey, Boolean, Text
+from sqlalchemy import String, Integer, Date, DateTime, ForeignKey, Boolean, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -42,6 +42,9 @@ class Student(Base):
     payments: Mapped[list["Payment"]] = relationship(
         "Payment", back_populates="student", cascade="all, delete-orphan"
     )
+    attendances: Mapped[list["Attendance"]] = relationship(
+        "Attendance", back_populates="student", cascade="all, delete-orphan"
+    )
 
 
 class Payment(Base):
@@ -65,3 +68,25 @@ class Payment(Base):
     )
 
     student: Mapped[Student] = relationship("Student", back_populates="payments")
+
+
+class Attendance(Base):
+    __tablename__ = "attendances"
+    __table_args__ = (
+        UniqueConstraint("student_id", "session_date", name="uq_attendance_student_date"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    student_id: Mapped[int] = mapped_column(
+        ForeignKey("students.id", ondelete="CASCADE"), index=True
+    )
+    session_date: Mapped[date] = mapped_column(Date, index=True)
+    # present, absent, late, excused
+    status: Mapped[str] = mapped_column(String(16), default="present")
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
+    student: Mapped[Student] = relationship("Student", back_populates="attendances")

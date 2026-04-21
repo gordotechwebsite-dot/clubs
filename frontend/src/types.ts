@@ -50,6 +50,42 @@ export interface Payment {
   updated_at: string;
 }
 
+export type AttendanceStatus = "present" | "absent" | "late" | "excused";
+
+export interface Attendance {
+  id: number;
+  student_id: number;
+  session_date: string;
+  status: AttendanceStatus;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AttendanceSheetEntry {
+  student_id: number;
+  student_name: string;
+  sport: string | null;
+  category: string | null;
+  attendance_id: number | null;
+  status: AttendanceStatus | null;
+  notes: string | null;
+}
+
+export interface AttendanceSheet {
+  session_date: string;
+  entries: AttendanceSheetEntry[];
+}
+
+export interface AttendanceStats {
+  total_sessions: number;
+  present: number;
+  absent: number;
+  late: number;
+  excused: number;
+  attendance_rate: number;
+}
+
 export interface DashboardStats {
   total_students: number;
   active_students: number;

@@ -39,7 +39,7 @@ export default function StudentsList() {
   async function onDelete(s: Student) {
     if (
       !confirm(
-        `Eliminar a ${s.full_name} del roster?\n\nTambién se borrarán sus pagos registrados. Esta acción no se puede deshacer.`
+        `Eliminar a ${s.full_name} de la plantilla?\n\nTambién se borrarán sus pagos registrados. Esta acción no se puede deshacer.`
       )
     ) {
       return;
@@ -51,7 +51,7 @@ export default function StudentsList() {
   return (
     <div>
       <PageHeader
-        eyebrow="Roster oficial"
+        eyebrow="Plantilla oficial"
         title="Estudiantes del club"
         subtitle="Directorio completo del Club Titanes. Cada ficha centraliza datos, pagos, carnet y factura del deportista."
         actions={

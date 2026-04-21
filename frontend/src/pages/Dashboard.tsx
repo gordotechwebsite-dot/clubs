@@ -136,13 +136,13 @@ export default function Dashboard() {
                 </div>
                 <h2 className="h-section">Accesos rápidos</h2>
                 <p className="text-sm text-slate-500 mt-1 max-w-lg">
-                  Administra el roster, registra pagos, emite facturas y carnets
+                  Administra la plantilla, registra pagos, emite facturas y carnets
                   oficiales del club.
                 </p>
               </div>
               <div className="flex items-center gap-2 flex-wrap">
                 <Link to="/estudiantes" className="btn-primary">
-                  Ver roster
+                  Ver plantilla
                 </Link>
                 <Link to="/pagos" className="btn-ghost">
                   Ir a pagos
