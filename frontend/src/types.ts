@@ -6,6 +6,7 @@ export interface Admin {
 
 export interface Student {
   id: number;
+  public_token: string | null;
   full_name: string;
   document_id: string | null;
   birth_date: string | null;
@@ -29,10 +30,30 @@ export interface Student {
 }
 
 export type StudentInput = Partial<
-  Omit<Student, "id" | "created_at" | "updated_at" | "total_due" | "total_paid" | "balance" | "pending_months">
+  Omit<
+    Student,
+    | "id"
+    | "public_token"
+    | "created_at"
+    | "updated_at"
+    | "total_due"
+    | "total_paid"
+    | "balance"
+    | "pending_months"
+  >
 > & {
   full_name: string;
 };
+
+export interface PublicStudent {
+  id: number;
+  full_name: string;
+  sport: string | null;
+  category: string | null;
+  photo_url: string | null;
+  join_date: string;
+  is_active: boolean;
+}
 
 export interface Payment {
   id: number;

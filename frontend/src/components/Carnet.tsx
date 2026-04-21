@@ -5,23 +5,26 @@ import { formatDateEs } from "../utils";
 interface Props {
   student: Student;
   validUntil?: Date;
+  publicUrl?: string;
 }
 
-export default function Carnet({ student, validUntil }: Props) {
+export default function Carnet({ student, validUntil, publicUrl }: Props) {
   const valid = validUntil || (() => {
     const d = new Date();
     d.setFullYear(d.getFullYear() + 1);
     return d;
   })();
 
-  const qrValue = JSON.stringify({
-    club: "Club Titanes Soatá",
-    id: student.id,
-    name: student.full_name,
-    doc: student.document_id,
-    sport: student.sport,
-    valid_until: valid.toISOString().slice(0, 10),
-  });
+  const qrValue =
+    publicUrl ||
+    JSON.stringify({
+      club: "Club Titanes Soatá",
+      id: student.id,
+      name: student.full_name,
+      doc: student.document_id,
+      sport: student.sport,
+      valid_until: valid.toISOString().slice(0, 10),
+    });
 
   return (
     <div

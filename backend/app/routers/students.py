@@ -1,3 +1,4 @@
+import uuid
 from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -76,7 +77,7 @@ def create_student(
     data = payload.model_dump(exclude_none=True)
     if "join_date" not in data:
         data["join_date"] = date.today()
-    student = Student(**data)
+    student = Student(**data, public_token=uuid.uuid4().hex)
     db.add(student)
     db.commit()
     db.refresh(student)

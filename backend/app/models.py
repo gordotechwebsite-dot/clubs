@@ -20,6 +20,9 @@ class Student(Base):
     __tablename__ = "students"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    public_token: Mapped[str | None] = mapped_column(
+        String(64), unique=True, nullable=True, index=True
+    )
     full_name: Mapped[str] = mapped_column(String(255), index=True)
     document_id: Mapped[str | None] = mapped_column(String(64), unique=True, nullable=True, index=True)
     birth_date: Mapped[date | None] = mapped_column(Date, nullable=True)

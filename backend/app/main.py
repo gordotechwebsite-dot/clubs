@@ -1,20 +1,38 @@
 import logging
+import uuid
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import inspect, text
 from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.database import Base, SessionLocal, engine
-from app.models import Admin
-from app.routers import attendance, auth, dashboard, payments, students
+from app.models import Admin, Student
+from app.routers import attendance, auth, dashboard, payments, public, students
 from app.security import hash_password
 
 logger = logging.getLogger("uvicorn")
 
 
+def _migrate_schema() -> None:
+    """Lightweight in-place migrations for SQLite."""
+    inspector = inspect(engine)
+    columns = {col["name"] for col in inspector.get_columns("students")}
+    with engine.begin() as conn:
+        if "public_token" not in columns:
+            conn.execute(text("ALTER TABLE students ADD COLUMN public_token VARCHAR(64)"))
+            conn.execute(
+                text(
+                    "CREATE UNIQUE INDEX IF NOT EXISTS ix_students_public_token "
+                    "ON students(public_token)"
+                )
+            )
+
+
 def _init_db() -> None:
     Base.metadata.create_all(bind=engine)
+    _migrate_schema()
     db: Session = SessionLocal()
     try:
         existing = db.query(Admin).first()
@@ -28,6 +46,13 @@ def _init_db() -> None:
             db.add(admin)
             db.commit()
             logger.info("Admin inicial creado: %s", settings.admin_email)
+
+        pending = db.query(Student).filter(Student.public_token.is_(None)).all()
+        if pending:
+            for s in pending:
+                s.public_token = uuid.uuid4().hex
+            db.commit()
+            logger.info("Backfill de public_token para %d deportistas", len(pending))
     finally:
         db.close()
 
@@ -49,6 +74,7 @@ def create_app() -> FastAPI:
     app.include_router(payments.router)
     app.include_router(attendance.router)
     app.include_router(dashboard.router)
+    app.include_router(public.router)
 
     @app.get("/api/health")
     def health():
