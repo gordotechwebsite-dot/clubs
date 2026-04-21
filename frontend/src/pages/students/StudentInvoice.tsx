@@ -165,6 +165,20 @@ export default function StudentInvoice() {
             <div className="text-[11px] uppercase tracking-widest text-slate-500">
               Facturado a
             </div>
+            <div className="font-semibold text-slate-900 text-lg">
+              {student.guardian_name || "Sin acudiente registrado"}
+            </div>
+            <div className="text-sm text-slate-600">
+              {student.guardian_phone ? `Tel. ${student.guardian_phone}` : "Sin teléfono"}
+            </div>
+            <div className="text-sm text-slate-600">
+              {student.address || ""}
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-[11px] uppercase tracking-widest text-slate-500">
+              Deportista
+            </div>
             <div className="font-semibold text-slate-900 text-lg">{student.full_name}</div>
             <div className="text-sm text-slate-600">
               {student.document_id ? `Documento ${student.document_id}` : "Sin documento"}
@@ -172,18 +186,9 @@ export default function StudentInvoice() {
             <div className="text-sm text-slate-600">
               {[student.sport, student.category].filter(Boolean).join(" / ") || "Deportista"}
             </div>
-          </div>
-          <div className="text-right">
-            <div className="text-[11px] uppercase tracking-widest text-slate-500">
-              Contacto
-            </div>
-            <div className="text-sm text-slate-700">{student.phone || "Sin teléfono"}</div>
-            <div className="text-sm text-slate-700">
-              {student.guardian_name ? `Acudiente: ${student.guardian_name}` : ""}
-            </div>
-            <div className="text-sm text-slate-700">
-              {student.guardian_phone ? `Tel. ${student.guardian_phone}` : ""}
-            </div>
+            {student.phone ? (
+              <div className="text-sm text-slate-600">Tel. {student.phone}</div>
+            ) : null}
           </div>
         </div>
 

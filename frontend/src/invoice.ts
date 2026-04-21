@@ -53,17 +53,24 @@ export async function buildInvoicePdf(
   doc.setFont("helvetica", "normal");
   doc.setTextColor(40);
   doc.setFontSize(11);
-  doc.text(student.full_name, margin + 12, y + 38);
-  if (student.document_id) doc.text(`Documento: ${student.document_id}`, margin + 12, y + 54);
-  if (student.category || student.sport) {
-    const cat = [student.sport, student.category].filter(Boolean).join(" / ");
-    doc.text(`Categoría: ${cat}`, margin + 12, y + 70);
-  }
-  if (student.phone) doc.text(`Tel: ${student.phone}`, margin + 260, y + 38);
-  if (student.guardian_name)
-    doc.text(`Acudiente: ${student.guardian_name}`, margin + 260, y + 54);
+  doc.text(student.guardian_name || "Sin acudiente registrado", margin + 12, y + 38);
   if (student.guardian_phone)
-    doc.text(`Tel. acudiente: ${student.guardian_phone}`, margin + 260, y + 70);
+    doc.text(`Tel. ${student.guardian_phone}`, margin + 12, y + 54);
+  if (student.address) doc.text(student.address, margin + 12, y + 70);
+
+  doc.setTextColor(11, 27, 74);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(12);
+  doc.text("Deportista:", margin + 260, y + 20);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(40);
+  doc.setFontSize(11);
+  doc.text(student.full_name, margin + 260, y + 38);
+  if (student.document_id) doc.text(`Documento: ${student.document_id}`, margin + 260, y + 54);
+  if (student.sport || student.category) {
+    const cat = [student.sport, student.category].filter(Boolean).join(" / ");
+    doc.text(cat, margin + 260, y + 70);
+  }
 
   y += 100;
 
