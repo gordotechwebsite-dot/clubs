@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "club-titanes-api"
+version = "0.1.0"
+description = "API Club Titanes"
+authors = ["Devin"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.11,<4.0"
+fastapi = "^0.136.0"
+uvicorn = {extras = ["standard"], version = "^0.44.0"}
+sqlalchemy = "^2.0.49"
+pydantic = {extras = ["email"], version = "^2.13.3"}
+pydantic-settings = "^2.14.0"
+python-jose = {extras = ["cryptography"], version = "^3.5.0"}
+python-multipart = "^0.0.26"
+bcrypt = "^5.0.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
